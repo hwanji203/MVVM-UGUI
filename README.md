@@ -6,7 +6,7 @@ UGUI 용 MVVM 틀. 화면 하나 만들 때 반복되는 연결 코드를 0 에 
 - `Element` — 재사용 위젯 (Label · Gauge · Button · Slider …). 각 Element 는 `Apply` 만 구현.
 - 생성기 — 프리팹의 Element 를 꺼내는 partial 속성과, 이름이 같은 ViewModel 멤버와의 연결 (`AutoBind`) 을 만든다.
 
-> 개발 중 (0.x). 설계: Project_B `Docs/design/unity-ui-architecture.md`.
+> 개발 중 (0.x). 설계 `Documentation~/DESIGN.md` · 진행 `Documentation~/ROADMAP.md` · AI 작업 지침 `AGENTS.md`.
 
 ## 설치
 
