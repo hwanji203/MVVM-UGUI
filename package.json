@@ -1,0 +1,14 @@
+{
+  "name": "com.hwan.mvvmsystem",
+  "version": "0.1.0",
+  "displayName": "MVVMSystem",
+  "description": "UGUI MVVM framework: Bindable values, reusable Elements, generated element access and auto-binding.",
+  "unity": "6000.3",
+  "dependencies": {
+    "com.unity.ugui": "2.0.0"
+  },
+  "author": {
+    "name": "hwanji203",
+    "url": "https://github.com/hwanji203"
+  }
+}
