@@ -1,7 +1,7 @@
 {
   "name": "com.banggae.mvvmsystem",
   "version": "0.1.0",
-  "displayName": "MVVMSystem",
+  "displayName": "MVVM UI",
   "description": "UGUI MVVM framework: Bindable values, reusable Elements, generated element access and auto-binding.",
   "unity": "6000.3",
   "dependencies": {

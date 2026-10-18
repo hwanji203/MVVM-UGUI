@@ -44,11 +44,13 @@ Git URL 패키지는 Apes 안에서 고칠 수 없다 (`Library/PackageCache` �
 | --- | --- |
 | GitHub `hwanji203/MVVMSystem` | 원본. 모든 수정은 결국 여기로 push |
 | Apes `Packages/com.banggae.mvvmsystem/` (사용자 PC 에만) | **주 작업 장소** — 이 저장소의 clone. 고치면 Apes 에 바로 반영. Apes git 은 무시 |
-| `D:/GameDev_C/Projects/Unity/MVVMSystem` | Project_B 가 `file:` 로 쓰는 사본 — Project_B 로 돌아오면 `git pull` |
+| `D:/GameDev_C/Projects/Unity/MVVMSystem` | Project_B 가 `file:` 로 쓰는 사본 — 여기서 고치고 push 해도 된다 (두 사본은 같은 원본의 clone 으로 동등) |
 
 1. **처음 한 번** (Apes 세션, Apes 팀 규칙대로): 위 폴더에 clone → Apes 의 `.git/info/exclude` 에 `Packages/com.banggae.mvvmsystem/` (내 PC 전용 — 팀 파일을 안 건드림) → manifest 에 `"com.banggae.mvvmsystem": "https://github.com/hwanji203/MVVMSystem.git#v0.1.0"` (manifest 변경 — 팀 승인 1회).
 2. **평소**: Apes 에서 화면을 만들다 부품이 필요하면 clone 안의 코드를 고치고, 그 폴더 (= 이 저장소) 에서 commit · push. Apes 저장소의 커밋과는 별개.
+   Project_B 쪽 사본에서 고쳐도 된다 (사용자 10-18 확인). **어느 사본이든 고치기 전에 `git pull`, 끝나면 push** — 두 곳에서 따로 커밋하면 갈라진다.
+   Project_B (6000.6) 에서 고칠 때는 6000.3 에 있는 API 만 쓴다 — 아니면 Apes 에서 컴파일이 깨진다.
 3. **팀에 내보낼 때만**: `package.json` 의 `version` 을 올리고 같은 이름의 태그 (`v0.2.0` …) 를 push → Apes manifest 의 `#태그` 를 올린다 (manifest 변경 — 팀 규칙대로).
-4. **단점**: 사본이 둘 (Apes clone · Project_B 용) — Project_B 로 돌아올 때 `git pull` 을 잊으면 옛 코드로 컴파일된다. 내 PC 에서는 내장 패키지가 태그보다 우선이라, 팀원이 받는 버전과 내가 보는 코드가 다를 수 있다 — 내보내기 전에 태그 버전으로 확인하려면 clone 폴더를 잠시 치운다.
+4. **단점**: 사본이 둘 (Apes clone · Project_B 용) — 다른 쪽에서 고친 뒤 `git pull` 을 잊으면 옛 코드로 컴파일되거나, 그 위에 따로 커밋해 갈라진다. 내 PC 에서는 내장 패키지가 태그보다 우선이라, 팀원이 받는 버전과 내가 보는 코드가 다를 수 있다 — 내보내기 전에 태그 버전으로 확인하려면 clone 폴더를 잠시 치운다.
 
 안 고른 것: JTH 폴더에 만들고 나중에 옮기기 (옮기는 작업이 매번) · 원본에서만 고치고 태그로 왕복 (한 줄마다 push · 태그 · manifest) · junction 으로 두 사본을 한 벌로 (Unity 가 연결된 폴더를 불안정하게 다룰 때가 있다).
