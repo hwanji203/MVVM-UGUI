@@ -103,18 +103,19 @@ public class Bindable<T> : IReadOnlyBindable<T>
 ### 2.2 파생 값 (확정)
 
 ```csharp
-// 정적 클래스 Bindable — (IReadOnlyBindable<TR> bindable, IDisposable unSub) 를 돌려준다
-HpRatio = Bindable.Combine(Hp, MaxHp, (h, m) => (float)h / m).bindable;   // 원본이 VM 자신의 값 → 핸들은 버린다
-HpText  = Bindable.Combine(Hp, MaxHp, (h, m) => $"{h}/{m}").bindable;
-Dead    = Bindable.Select(Hp, h => h <= 0).bindable;
+// 정적 클래스 Bindable. Combine 은 CombineBindable<TR, T1, T2> (IReadOnlyBindable<TR> + IDisposable) 를 돌려준다
+HpRatio = Bindable.Combine(Hp, MaxHp, (h, m) => (float)h / m);   // 원본이 VM 자신의 값 → 끊지 않아도 된다
+HpText  = Bindable.Combine(Hp, MaxHp, (h, m) => $"{h}/{m}");
 
-var (volumeText, unSub) = Bindable.Combine(settings.Volume, settings.Muted, (v, m) => m ? "음소거" : $"{v * 100:0}%");
+var volumeText = Bindable.Combine(settings.Volume, settings.Muted, (v, m) => m ? "음소거" : $"{v * 100:0}%");
+Own(volumeText);                                                  // 원본이 VM 보다 오래 산다 → 맡긴다
 VolumeText = volumeText;
-Own(unSub);                                                                // 원본이 VM 보다 오래 산다 → 맡긴다
+
+Dead    = Bindable.Select(Hp, h => h <= 0).bindable;               // Select 는 아직 (bindable, unSub) 튜플
 ```
 
 "원본이 바뀌면 무엇을 갱신할지" 를 **만들 때 한 번** 선언한다. 원본을 바꾸는 이벤트가 늘어도 갱신 코드는 안 는다.
-**해제 (사용자 2026-10-18):** 파생 값과 함께 원본 구독의 해제 핸들을 튜플로 돌려준다. 원본이 VM 자신의 값이면 같이 버려지므로 핸들은 버리고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own(unSub)` — 안 하면 화면을 닫아도 원본이 파생 값을 붙잡아 계속 다시 계산된다. `unSub` 을 잊어도 컴파일은 되므로 오래 사는 원본일 때는 리뷰로 본다.
+**해제 (사용자 2026-10-18):** 파생 값은 원본 구독을 끊을 수 있어야 한다. 원본이 VM 자신의 값이면 같이 버려지므로 끊지 않아도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own` — 안 하면 화면을 닫아도 원본이 파생 값을 붙잡아 계속 다시 계산된다. `Combine` 은 값과 해제가 한 객체 (생성자가 원본을 구독, `Dispose` 로 끊음), `Select` 는 아직 튜플. `Own` 을 잊어도 컴파일은 되므로 오래 사는 원본일 때는 리뷰로 본다.
 `[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVMSystem.Runtime.Binding` (ROADMAP "정한 세부").
 
 ### 2.3 `Command` (확정)
@@ -335,7 +336,7 @@ MVVMSystem/                     (패키지 루트 = 저장소 루트, com.hwan.m
 | 프로젝트 | 참조 |
 | --- | --- |
 | Project_B (사용자 혼자, Unity 6000.6) | `file:../../../MVVMSystem` (로컬) + `testables` |
-| Apes (팀, Unity 6000.3) | 지금은 사용자 작업폴더에서 개발 중 (`HANDOFF-APES.md`). 나중에 git URL + 태그 |
+| Apes (팀, Unity 6000.3) | git URL + 태그 (사용자 10-18). 화면과 나머지 부품은 Apes 에서 함께 만든다 — 고치는 흐름은 ROADMAP "정할 것" |
 
 ### 7.3 프로젝트와 잇는 곳 (둘 다 선택)
 
