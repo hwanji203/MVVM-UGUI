@@ -1,6 +1,8 @@
-﻿namespace MVVMGUI.Core
+﻿using System;
+
+namespace MVVMGUI.Core
 {
-    public abstract class AbstractViewModel
+    public abstract class AbstractViewModel : IDisposable
     {
         private readonly DisposableBag _owned = new();
 
