@@ -336,7 +336,7 @@ MVVMSystem/                     (패키지 루트 = 저장소 루트, com.bangga
 | 프로젝트 | 참조 |
 | --- | --- |
 | Project_B (사용자 혼자, Unity 6000.6) | `file:../../../MVVMSystem` (로컬) + `testables` |
-| Apes (팀, Unity 6000.3) | git URL + 태그 (사용자 10-18). 화면과 나머지 부품은 Apes 에서 함께 만든다 — 고치는 흐름은 ROADMAP "정할 것" |
+| Apes (팀, Unity 6000.3) | git URL + 태그 (사용자 10-18). 화면과 나머지 부품은 Apes 에서 함께 만든다 — 사용자 PC 에서는 `Packages/` 에 이 저장소 clone 을 내장 패키지로 두고 고친다 (ROADMAP "Apes 에서 고치는 흐름") |
 
 ### 7.3 프로젝트와 잇는 곳 (둘 다 선택)
 

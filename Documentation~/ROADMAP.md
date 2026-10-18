@@ -31,14 +31,24 @@
 ## 개발 · 적용 방식
 
 1. 사용자가 이 저장소의 Runtime/ · Editor/ · Tests/에 공용 코드 중 핵심을 직접 작성한다. 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (`AGENTS.md` "현재 작업 담당").
-2. Project_B는 로컬 패키지 참조(`file:`)로 컴파일·테스트를 확인한다. 화면과 나머지 부품은 Apes에서 함께 만든다 (10-18). Apes에서 부품을 고치는 흐름은 아래 "정할 것".
+2. Project_B는 로컬 패키지 참조(`file:`)로 컴파일·테스트를 확인한다. 화면과 나머지 부품은 Apes에서 함께 만든다 (10-18). Apes에서 부품을 고치는 흐름은 아래 "Apes 에서 고치는 흐름".
 3. AI는 설명·설계 검토·리뷰를 지원하고, 디버깅으로 고친 것은 무엇을 왜 고쳤는지 보고한다. 구현 완료나 단계 진행을 임의로 기록하지 않는다.
 4. 공유할 버전이 준비되면 버전·태그를 정하고, Apes에는 팀 절차에 따라 Git URL + 태그로 적용한다.
 5. Apes의 기존 시스템과 공용 파일은 이 작업 때문에 변경하지 않는다. 프로젝트별 연결 코드는 각 프로젝트에 둔다.
 
-## 정할 것
+## Apes 에서 고치는 흐름 (2026-10-18 정함 — Claude 추천안, 사용자 채택)
 
-- **Apes 에서 부품을 만드는 흐름 `[?]`** — Git URL 패키지는 Apes 안에서 고칠 수 없다 (`Library/PackageCache` 에 읽기 전용으로 받는다). 후보:
-  ① 새 부품은 Apes JTH 폴더에서 패키지를 참조하는 코드로 만들고, 쓸 만해지면 이 저장소로 옮겨 태그를 올린다.
-  ② 이 저장소에서 고치고 push · 태그 → Apes manifest 의 태그를 올린다 (고칠 때마다 왕복).
-  ③ Apes `Packages/` 에 이 저장소를 내장 패키지로 두고 그 안에서 고친다 (팀 저장소에 들어가지 않게 해야 한다).
+Git URL 패키지는 Apes 안에서 고칠 수 없다 (`Library/PackageCache` 에 읽기 전용으로 받는다). 그래서 사용자 PC 의 Apes 에는 이 저장소의 clone 을 **내장 패키지**로 둔다 — Unity 는 `Packages/` 안의 같은 이름 패키지를 manifest 의 Git URL 보다 먼저 쓴다.
+
+| 곳 | 역할 |
+| --- | --- |
+| GitHub `hwanji203/MVVMSystem` | 원본. 모든 수정은 결국 여기로 push |
+| Apes `Packages/com.banggae.mvvmsystem/` (사용자 PC 에만) | **주 작업 장소** — 이 저장소의 clone. 고치면 Apes 에 바로 반영. Apes git 은 무시 |
+| `D:/GameDev_C/Projects/Unity/MVVMSystem` | Project_B 가 `file:` 로 쓰는 사본 — Project_B 로 돌아오면 `git pull` |
+
+1. **처음 한 번** (Apes 세션, Apes 팀 규칙대로): 위 폴더에 clone → Apes 의 `.git/info/exclude` 에 `Packages/com.banggae.mvvmsystem/` (내 PC 전용 — 팀 파일을 안 건드림) → manifest 에 `"com.banggae.mvvmsystem": "https://github.com/hwanji203/MVVMSystem.git#v0.1.0"` (manifest 변경 — 팀 승인 1회).
+2. **평소**: Apes 에서 화면을 만들다 부품이 필요하면 clone 안의 코드를 고치고, 그 폴더 (= 이 저장소) 에서 commit · push. Apes 저장소의 커밋과는 별개.
+3. **팀에 내보낼 때만**: `package.json` 의 `version` 을 올리고 같은 이름의 태그 (`v0.2.0` …) 를 push → Apes manifest 의 `#태그` 를 올린다 (manifest 변경 — 팀 규칙대로).
+4. **단점**: 사본이 둘 (Apes clone · Project_B 용) — Project_B 로 돌아올 때 `git pull` 을 잊으면 옛 코드로 컴파일된다. 내 PC 에서는 내장 패키지가 태그보다 우선이라, 팀원이 받는 버전과 내가 보는 코드가 다를 수 있다 — 내보내기 전에 태그 버전으로 확인하려면 clone 폴더를 잠시 치운다.
+
+안 고른 것: JTH 폴더에 만들고 나중에 옮기기 (옮기는 작업이 매번) · 원본에서만 고치고 태그로 왕복 (한 줄마다 push · 태그 · manifest) · junction 으로 두 사본을 한 벌로 (Unity 가 연결된 폴더를 불안정하게 다룰 때가 있다).
