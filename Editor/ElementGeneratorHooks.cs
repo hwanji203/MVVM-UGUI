@@ -1,4 +1,5 @@
 using System.Linq;
+using MVVMGUI.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -24,11 +25,8 @@ namespace MVVMGUI.Editor
 
         private static void OnPrefabSaving(GameObject root)
         {
-            foreach (var component in root.GetComponentsInChildren<MonoBehaviour>(true))
-            {
-                if (component != null && ElementScan.IsScreenView(component.GetType()))
-                    ElementGenerator.Generate(component, ElementGenerator.Trigger.PrefabSaving);
-            }
+            foreach (var view in root.GetComponentsInChildren<ScreenView>(true))
+                ElementGenerator.Generate(view, ElementGenerator.Trigger.PrefabSaving);
         }
 
         // GameObject 인스펙터 머리 (이름 · 태그 아래) 에 버튼 — View 가 붙은 오브젝트 하나를 골랐을 때만

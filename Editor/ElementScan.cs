@@ -10,25 +10,9 @@ namespace MVVMGUI.Editor
     /// <summary>View 아래의 Element 를 찾고, 속성 이름을 정하고, 문제를 알린다 (생성기의 읽기 부분).</summary>
     public static class ElementScan
     {
-        public static bool IsScreenView(Type type)
-        {
-            for (var t = type; t != null; t = t.BaseType)
-            {
-                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(ScreenView<>))
-                    return true;
-            }
-            return false;
-        }
+        public static bool IsScreenView(Type type) => typeof(ScreenView).IsAssignableFrom(type);
 
-        public static MonoBehaviour FindView(GameObject go)
-        {
-            foreach (var component in go.GetComponents<MonoBehaviour>())
-            {
-                if (component != null && IsScreenView(component.GetType()))
-                    return component;
-            }
-            return null;
-        }
+        public static ScreenView FindView(GameObject go) => go.GetComponent<ScreenView>();
 
         /// <summary>
         /// View 오브젝트의 자식 (꺼진 것 포함) 에서 Element 를 계층 순서대로 모은다.

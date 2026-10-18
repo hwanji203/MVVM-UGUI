@@ -288,6 +288,11 @@ public partial class BattleHudView : ScreenView<BattleHudViewModel>
 
 ### 5.0 `ScreenView` 의 열기 · 닫기 (사용자 10-18, 비동기는 UniTask)
 
+**두 층 (사용자 10-18, 나누기는 Claude 에 맡김):**
+- `ScreenView` (제네릭 아님) — 열기 · 닫기 · `OnOpen` / `OnClose` · `PlayOpen` / `PlayClose` · 전환 취소. **`ScreenManager` · 생성기는 이것만 본다** (목록 · 스택 · `GetComponent<ScreenView>()`).
+- `ScreenView<T> : ScreenView` (T = ViewModel) — `Awake` 에서 `CreateVM` → `Initialize` → `Bind(T)` → 꺼 두기, 파괴될 때 VM `Dispose`. 화면은 이걸 상속해 형변환 없이 자기 VM 을 받는다.
+- 나눈 이유: `ScreenView<A>` 와 `ScreenView<B>` 는 C# 에서 관계없는 타입이라 "어떤 화면이든" 을 가리킬 공통 타입이 없었다.
+
 ```csharp
 public async UniTask Open();    // SetActive(true) → await PlayOpen(token) → OnOpen
 public async UniTask Close();   // await PlayClose(token) → SetActive(false) → OnClose (이미 꺼져 있으면 아무것도 안 함)

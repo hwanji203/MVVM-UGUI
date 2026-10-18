@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using MVVMGUI.Core;
 using MVVMGUI.Elements.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -148,8 +149,7 @@ namespace MVVMGUI.Editor
                 SaveOrMarkDirty(view);
         }
 
-        private static IEnumerable<MonoBehaviour> Views(GameObject root) =>
-            root.GetComponentsInChildren<MonoBehaviour>(true).Where(c => c != null && ElementScan.IsScreenView(c.GetType()));
+        private static IEnumerable<ScreenView> Views(GameObject root) => root.GetComponentsInChildren<ScreenView>(true);
 
         private static void SaveOrMarkDirty(MonoBehaviour view)
         {
