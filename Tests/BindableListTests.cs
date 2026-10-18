@@ -69,5 +69,33 @@ namespace MVVMGUI.Tests
 
             Assert.AreEqual(1, calls);
         }
+
+        [Test]
+        public void Remove_Missing_ReturnsFalseAndDoesNotNotify()
+        {
+            var cards = new BindableList<string>();
+            cards.Add("A");
+            var calls = 0;
+            cards.Bind(_ => calls++);
+
+            var removed = cards.Remove("Z");
+
+            Assert.IsFalse(removed);
+            Assert.AreEqual(1, calls);
+        }
+
+        [Test]
+        public void Remove_Present_ReturnsTrueAndNotifies()
+        {
+            var cards = new BindableList<string>();
+            cards.Add("A");
+            var calls = 0;
+            cards.Bind(_ => calls++);
+
+            var removed = cards.Remove("A");
+
+            Assert.IsTrue(removed);
+            Assert.AreEqual(2, calls);
+        }
     }
 }

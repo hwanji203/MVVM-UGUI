@@ -92,5 +92,32 @@ namespace MVVMGUI.Tests
 
             Assert.AreEqual(10, doubled.Value);
         }
+
+        [Test]
+        public void Select_SameResult_DoesNotNotify()
+        {
+            var hp = new Bindable<int> { Value = 5 };
+            var alive = Bindable.Select(hp, h => h > 0);
+            var count = 0;
+            alive.Bind(_ => count++);
+
+            hp.Value = 3;
+
+            Assert.AreEqual(1, count);
+        }
+
+        [Test]
+        public void Derived_BindAfterDispose_StillGetsLastValue()
+        {
+            var a = new Bindable<int> { Value = 2 };
+            var b = new Bindable<int> { Value = 3 };
+            var product = Bindable.Combine(a, b, (x, y) => x * y);
+            product.Dispose();
+            var received = new List<int>();
+
+            product.Bind(received.Add);
+
+            CollectionAssert.AreEqual(new[] { 6 }, received);
+        }
     }
 }

@@ -15,7 +15,7 @@ namespace MVVMGUI.Binding
             get => _value[index];
             set
             {
-                if (Equals(_value[index], value))
+                if (EqualityComparer<T>.Default.Equals(_value[index], value))
                     return;
                 
                 _value[index] = value;
@@ -43,25 +43,31 @@ namespace MVVMGUI.Binding
         public void Add(T item)
         {
             _value.Add(item);
-            _valueChanged?.Invoke(_value);
+            NotifyList();
         }
 
-        public void Remove(T item)
+        // 목록에 없으면 바뀐 게 없으므로 알리지 않는다
+        public bool Remove(T item)
         {
-            _value.Remove(item);
-            _valueChanged?.Invoke(_value);
+            if (!_value.Remove(item))
+                return false;
+
+            NotifyList();
+            return true;
         }
 
         public void RemoveAt(int index)
         {
             _value.RemoveAt(index);
-            _valueChanged?.Invoke(_value);
+            NotifyList();
         }
 
         public void Clear()
         {
             _value.Clear();
-            _valueChanged?.Invoke(_value);
+            NotifyList();
         }
+
+        private void NotifyList() => _valueChanged?.Invoke(_value);
     }
 }

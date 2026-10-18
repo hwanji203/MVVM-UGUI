@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MVVMGUI.Binding
 {
@@ -11,7 +12,7 @@ namespace MVVMGUI.Binding
             get => _value;
             set
             {
-                if (Equals(value, _value))
+                if (EqualityComparer<T>.Default.Equals(value, _value))
                     return;
                 _value = value;
                 _valueChanged?.Invoke(_value);
