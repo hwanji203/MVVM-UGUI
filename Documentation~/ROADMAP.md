@@ -23,7 +23,9 @@
 
 | 날짜 | 누가 | 무엇 | 이유 |
 | --- | --- | --- | --- |
-| | | | |
+| 2026-10-18 | 사용자 | `Bindable.Combine` · `Bindable.Select` 는 `(IReadOnlyBindable<TR> bindable, IDisposable unSub)` 튜플을 돌려준다. 원본이 VM 자신의 값이면 `unSub` 은 버려도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own(unSub)` (DESIGN 2.2) | 오래 사는 원본이 구독 람다로 파생 값을 붙잡아, 화면을 닫아도 남아서 계속 다시 계산된다 |
+| 2026-10-18 | 사용자 | 바인딩 하위 namespace = `MVVMSystem.Runtime.Binding` (`Bindable<T>` · 정적 `Bindable` · `BindableList<T>` · `Command`) | 처음 이름 `…Runtime.Bindable` 은 정적 클래스 `Bindable` 과 같아서, 패키지 안 (`MVVMSystem.Runtime.*`) 코드의 `Bindable.Combine` 이 네임스페이스로 잡혀 CS0234 (Roslyn 으로 확인) |
+| 2026-10-18 | 사용자 | `Command` 생성자의 사용 가능 기본값 = `true` (`new Command(action, active = true)`) | 기본값 `false` 면 `new Command(OnClick)` 이 꺼진 버튼으로 시작한다 |
 
 ## 개발 · 적용 방식
 

@@ -103,13 +103,19 @@ public class Bindable<T> : IReadOnlyBindable<T>
 ### 2.2 파생 값 (확정)
 
 ```csharp
-HpRatio = Bindable.Combine(Hp, MaxHp, (h, m) => (float)h / m);
-HpText  = Bindable.Combine(Hp, MaxHp, (h, m) => $"{h}/{m}");
-Dead    = Bindable.Select(Hp, h => h <= 0);
+// 정적 클래스 Bindable — (IReadOnlyBindable<TR> bindable, IDisposable unSub) 를 돌려준다
+HpRatio = Bindable.Combine(Hp, MaxHp, (h, m) => (float)h / m).bindable;   // 원본이 VM 자신의 값 → 핸들은 버린다
+HpText  = Bindable.Combine(Hp, MaxHp, (h, m) => $"{h}/{m}").bindable;
+Dead    = Bindable.Select(Hp, h => h <= 0).bindable;
+
+var (volumeText, unSub) = Bindable.Combine(settings.Volume, settings.Muted, (v, m) => m ? "음소거" : $"{v * 100:0}%");
+VolumeText = volumeText;
+Own(unSub);                                                                // 원본이 VM 보다 오래 산다 → 맡긴다
 ```
 
 "원본이 바뀌면 무엇을 갱신할지" 를 **만들 때 한 번** 선언한다. 원본을 바꾸는 이벤트가 늘어도 갱신 코드는 안 는다.
-`[세부]` 인자 수 (`Select` 1 · `Combine` 2 · 3 으로 시작), 파생 값은 ViewModel 과 함께 버려지므로 따로 해제하지 않음.
+**해제 (사용자 2026-10-18):** 파생 값과 함께 원본 구독의 해제 핸들을 튜플로 돌려준다. 원본이 VM 자신의 값이면 같이 버려지므로 핸들은 버리고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own(unSub)` — 안 하면 화면을 닫아도 원본이 파생 값을 붙잡아 계속 다시 계산된다. `unSub` 을 잊어도 컴파일은 되므로 오래 사는 원본일 때는 리뷰로 본다.
+`[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVMSystem.Runtime.Binding` (ROADMAP "정한 세부").
 
 ### 2.3 `Command` (확정)
 
