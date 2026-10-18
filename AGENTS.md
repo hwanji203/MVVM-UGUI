@@ -1,6 +1,6 @@
 # MVVMSystem 작업 지침 (AI 용)
 
-UGUI MVVM 틀 패키지 (`com.hwan.mvvmsystem`). 사람용 설명은 `README.md`.
+UGUI MVVM 틀 패키지 (`com.banggae.mvvmsystem`). 사람용 설명은 `README.md`.
 
 1. 먼저 `Documentation~/DESIGN.md` (설계) 와 `Documentation~/ROADMAP.md` (단계 · 현황 · 옮기는 법) 를 읽는다.
 2. 다른 프로젝트 (Apes) 의 작업폴더에서 이어 만드는 중이면 `Documentation~/HANDOFF-APES.md` 도 읽는다 — 그 프로젝트의 규칙이 우선한다.

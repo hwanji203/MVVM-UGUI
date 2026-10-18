@@ -13,7 +13,7 @@ UGUI 용 MVVM 틀. 화면 하나 만들 때 반복되는 연결 코드를 0 에 
 `Packages/manifest.json` 의 `dependencies` 에 한 줄:
 
 ```json
-"com.hwan.mvvmsystem": "https://github.com/hwanji203/MVVMSystem.git#v0.1.0"
+"com.banggae.mvvmsystem": "https://github.com/hwanji203/MVVMSystem.git#v0.1.0"
 ```
 
 `#` 뒤의 태그가 버전이다. 올릴 때는 태그만 바꾼다.

@@ -319,7 +319,7 @@ public partial class SettingView : PopupView<SettingViewModel>
 ### 7.1 구성
 
 ```
-MVVMSystem/                     (패키지 루트 = 저장소 루트, com.hwan.mvvmsystem)
+MVVMSystem/                     (패키지 루트 = 저장소 루트, com.banggae.mvvmsystem)
  ├ package.json · README.md · AGENTS.md
  ├ Documentation~/  DESIGN.md (이 문서) · ROADMAP.md · HANDOFF-APES.md   (~ 로 끝나는 폴더는 Unity 가 무시)
  ├ Runtime/  (asmdef MVVMSystem)          Binding · ViewModel · Elements · ScreenView · PopupView · ScreenManager · UISoundSO
