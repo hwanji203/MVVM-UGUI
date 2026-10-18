@@ -11,7 +11,7 @@
 | P0 | 완료 (10-15, Claude) | 저장소 · `package.json` · asmdef 2개 · README · 이 문서들 | Project_B 에서 패키지 인식, 기존 테스트 통과 |
 | **UI0** | 다음 | 바인딩: `Bindable` · `IReadOnlyBindable` · `Select` · `Combine` · `Command` · `BindableList` · `ViewModel` (`Own`) + 테스트 asmdef | DESIGN 8절의 Bindable · Command · BindableList · ViewModel 테스트 통과 |
 | UI2 | | 기본 Element: `Element` · `ValueElement` · Label · Gauge · Button (+ `UISoundSO` · `AudioSourceUISoundSO`) · Toggle · Slider · Switch · Visible, `Reset()` 채우기 | 빈 씬에서 각 Element 를 Bindable 에 묶어 값이 바뀌면 화면이 따라감 (수동 확인 방법을 기록) |
-| UI3 | | `ScreenView<TVM>` + 생성기 (partial `.g.cs` 속성 + `AutoBind`) · 프리팹 저장 · 컴파일 뒤 자동 생성 · 어긋남 검사 | 테스트 프리팹으로 생성 결과 확인, 생성기 테스트 통과 |
+| UI3 | | `ScreenView<TVM>` (지금 `AbstractView`) + 생성기 (partial `.g.cs` Element 속성만 — 자동 연결 없음, 10-18) · 프리팹 저장 때 생성 · 어긋남 검사 | 테스트 프리팹으로 생성 결과 확인, 생성기 테스트 통과 |
 | UI4 | | `ScreenManager` (`Open<T>` · `Close` · 스택 · 여러 개) · `PopupView` | 팝업 열기 · 닫기 · 배경 클릭 닫기 · 두 개 겹쳐 띄우기 |
 | UI5 | | `BindableList` 를 쓰는 `ListElement` · `ItemView` | 항목 추가 · 삭제 · 교체가 화면에 반영 |
 | UI6 | | 실제 화면 하나로 검증 | Apes: 사용자가 정한 화면 (10-18: Element 와 함께 Apes 에서). Project_B: 전투 HUD 는 틀이 갖춰진 뒤 `[?]` |
@@ -31,6 +31,7 @@ UI0 테스트: `Tests/` (asmdef `MVVMGUI.Tests`, Editor 전용, `UNITY_INCLUDE_T
 | 2026-10-18 | 사용자 | 바인딩 하위 namespace = `MVVMGUI.Binding` (`Bindable<T>` · 정적 `Bindable` · `BindableList<T>` · `Command`) | 처음 이름 `…Runtime.Bindable` 은 정적 클래스 `Bindable` 과 같아서, 패키지 안 (`MVVMGUI.Runtime.*`) 코드의 `Bindable.Combine` 이 네임스페이스로 잡혀 CS0234 (Roslyn 으로 확인) |
 | 2026-10-18 | 사용자 | namespace 는 **asmdef 폴더 기준, `Runtime` 없이**: `MVVMGUI` (IDisposable · UnSubscriber) · `MVVMGUI.Binding` · `MVVMGUI.Core` · `MVVMGUI.Elements` · `MVVMGUI.Elements.Core` · `MVVMGUI.Editor` · `MVVMGUI.Tests` | Rider 는 asmdef 가 있는 폴더 (`Runtime/`) 를 뿌리로 보고 네임스페이스를 기대한다 — `MVVMGUI.Runtime.*` 는 어긋남 경고. 설계 문서도 처음부터 `MVVMGUI.Binding` 꼴 |
 | 2026-10-18 | 사용자 | `Command` 생성자의 사용 가능 기본값 = `true` (`new Command(action, active = true)`) | 기본값 `false` 면 `new Command(OnClick)` 이 꺼진 버튼으로 시작한다 |
+| 2026-10-18 | 사용자 | **자동 연결 (`AutoBind`) 은 없앤다** — 생성기는 Element 속성만, 연결은 전부 View 의 `Bind` 에 손으로 (DESIGN 4.2). 생성 시점도 프리팹 저장 + 버튼만 (컴파일 뒤 다시 생성 뺌) | 자동으로 `A ↔ a` 가 묶인 뒤 손으로 `B ↔ a` 를 묶으면 A 의 연결이 안 끊겨 둘 다 `a` 를 본다. 막으려면 이름 바꾸기 · `Unbind` · 제외 표시가 필요하고 연결이 코드에 다 안 드러난다 |
 | 2026-10-18 | Claude (디버깅) | `AbstractView` 의 `new()` 제약 삭제 · 파괴될 때 VM `Dispose` (`protected virtual OnDestroy` — 하위가 쓰면 `base.OnDestroy()`) · `AbstractViewModel.Dispose` 뒤 목록 비움 | `CreateVM` 이 있어 `new()` 는 생성자에 SO 를 받는 VM 만 막았다 · `Own` 한 구독이 풀리지 않았다 · 두 번 `Dispose` 하면 두 번 풀렸다 |
 
 ## 개발 · 적용 방식

@@ -230,7 +230,7 @@ public class AudioSourceUISoundSO : UISoundSO { … }      // 패키지 기본 �
 - 프로젝트가 자기 사운드 시스템으로 구현한 SO 를 만들어 쓰면 된다 (연결점 1, 7.3).
 - `[세부]` `Reset()` 이 기본 SO 를 채우는 방법, 잠긴 버튼 소리, Toggle · Slider 소리.
 
-## 4. View — 생성된 속성 + 자동 연결
+## 4. View — 생성된 속성 + 손 연결
 
 ### 4.1 Element 속성 생성 — partial (확정)
 
@@ -241,12 +241,6 @@ public partial class BattleHudView
     private LabelElement HpText => (LabelElement)Elements[0];
     private GaugeElement HpGauge => (GaugeElement)Elements[1];
     private ButtonElement PauseButton => (ButtonElement)Elements[2];
-
-    protected override void AutoBind(BattleHudViewModel vm)
-    {
-        HpText.Bind(vm.HpText);
-        PauseButton.Bind(vm.PauseButton);
-    }
 }
 ```
 
@@ -255,17 +249,16 @@ public partial class BattleHudView
 - 안쪽에 다른 `ScreenView` · `ItemView` 가 있으면 그 아래는 스캔하지 않는다.
 - 생성 뒤 컴포넌트가 바뀌어 배열과 속성이 어긋나면 `OnValidate` · `Awake` 에서 알린다 (속성 · 기대 타입 · 실제 타입).
 - View 클래스에는 `partial` 만 붙인다. 생성 파일은 View 스크립트 옆 `<View>.Elements.g.cs`.
-- **언제 생성 (확정)**: 프리팹 저장 때 (`PrefabStage.prefabSaving`) + 스크립트 컴파일이 끝날 때 + 인스펙터 버튼 (수동). 내용이 같으면 파일을 다시 쓰지 않는다.
+- **언제 생성 (확정)**: 프리팹 저장 때 (`PrefabStage.prefabSaving`) + 인스펙터 버튼 (수동). 내용이 같으면 파일을 다시 쓰지 않는다. (자동 연결이 없어져 ViewModel 과 비교할 일이 없으므로 "스크립트 컴파일이 끝날 때" 다시 생성은 뺐다 — 사용자 10-18.)
 
-### 4.2 자동 연결 `AutoBind` (확정 — 연결만 생성, ViewModel 선언은 생성하지 않는다)
+### 4.2 자동 연결은 없다 (사용자 2026-10-18 — 처음 설계의 `AutoBind` 를 뺐다)
 
-- 에디터에서 생성할 때 한 번 비교한다 (리플렉션은 에디터에서만, 실행 중엔 생성된 일반 코드).
-- 비교 대상 ViewModel = View 가 상속한 `ScreenView<TVM>` 의 `TVM`.
-- 짝 조건: Element 속성 이름 == ViewModel 의 public 필드 · 속성 이름 (**완전히 같은 이름만**), 그리고 그 멤버 타입 (`Bindable<T>` · `IReadOnlyBindable<T>` · `Command` · `BindableList<T>`) 을 그 Element 의 `Bind` 가 받을 수 있을 때.
-- 알린다: 이름은 같은데 타입이 안 맞는 것 (경고, 생성 안 함) · 짝 없는 Element 목록.
-- **ViewModel 쪽 선언은 생성하지 않는다** — 생성하면 쓰기 가능한 `Bindable` 이 되어 파생 값을 못 쓰고, 프리팹이 ViewModel 모양을 정하게 된다 (사용자가 기각).
+- 처음엔 Element 이름 == ViewModel 멤버 이름이면 생성기가 `AutoBind` 에 연결을 써 주는 안이었다.
+- 뺀 이유: 자동으로 `A ↔ a` 가 묶인 뒤 손으로 `B ↔ a` 를 묶으면, 다른 Element 라 A 의 연결이 끊기지 않아 **A · B 가 둘 다 `a` 를 본다**. 막으려면 이름을 바꾸거나 `Unbind` · 제외 표시가 필요해지고, 연결이 코드에 다 드러나지 않는다.
+- 그래서 **연결은 전부 View 의 `Bind` 에 손으로 쓴다.** 생성기는 Element 를 꺼내는 속성만 만든다 (4.1).
+- ViewModel 쪽 선언도 생성하지 않는다 (그대로).
 
-### 4.3 남는 손 연결
+### 4.3 손 연결
 
 ```csharp
 public partial class BattleHudView : ScreenView<BattleHudViewModel>
@@ -276,13 +269,15 @@ public partial class BattleHudView : ScreenView<BattleHudViewModel>
 
     protected override void Bind(BattleHudViewModel vm)
     {
-        HpGauge.Bind(vm.HpRatio);     // 이름이 달라서 손으로
+        HpText.Bind(vm.HpText);
+        HpGauge.Bind(vm.HpRatio);
+        PauseButton.Bind(vm.PauseButton);
     }
 }
 ```
 
-- `ScreenView` 는 `Awake` 에서 `CreateViewModel` → `AutoBind` → `Bind`, `OnDestroy` 에서 ViewModel `Dispose`.
-- 같은 Element 를 손으로 다시 묶으면 손으로 묶은 것이 이긴다.
+- `ScreenView` 는 `Awake` 에서 `CreateViewModel` → `Bind`, `OnDestroy` 에서 ViewModel `Dispose`. (지금 코드 이름은 `AbstractView<T>` · `CreateVM` — 이름과 모양은 사용자가 정하는 중 `[?]`.)
+- 같은 Element 를 다시 묶으면 이전 연결은 끊긴다 (Element 의 `Bind`).
 - ViewModel 이 필요한 SO 는 View 가 `[SerializeField]` 로 들고 생성자로 넘긴다.
 
 ## 5. 화면 열기 · 닫기 (확정)
@@ -323,7 +318,7 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
  ├ package.json · README.md · AGENTS.md
  ├ Documentation~/  DESIGN.md (이 문서) · ROADMAP.md · HANDOFF-APES.md   (~ 로 끝나는 폴더는 Unity 가 무시)
  ├ Runtime/  (asmdef MVVMGUI)          Binding · ViewModel · Elements · ScreenView · PopupView · ScreenManager · UISoundSO
- ├ Editor/   (asmdef MVVMGUI.Editor)   Element 속성 · 자동 연결 생성기
+ ├ Editor/   (asmdef MVVMGUI.Editor)   Element 속성 생성기
  └ Tests/    (asmdef MVVMGUI.Tests)    EditMode 테스트
 ```
 
@@ -350,7 +345,7 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
 - `Bindable`: 같은 값 무시 · 구독 즉시 현재 값 · `notifyNow: false` · 해제 뒤 알림 없음 · `Combine` 재계산.
 - `Command`: `CanExecute` false 면 무시. `BindableList`: 알림 순서 · 인덱스.
 - `ViewModel`: `Own` 한 것이 `Dispose` 에서 풀린다.
-- 생성기: 같은 이름 · 중첩 View 경계 · 생성 코드의 타입 = 실제 컴포넌트 · 자동 연결 (맞으면 생성, 타입 불일치 경고, 짝 없는 목록).
+- 생성기: 같은 이름 · 중첩 View 경계 · 생성 코드의 타입 = 실제 컴포넌트 · 내용이 같으면 다시 쓰지 않음.
 
 
 ## 현재 작업 담당 (2026-10-18)
