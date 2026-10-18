@@ -13,6 +13,7 @@ namespace MVVMGUI.Runtime.Core
             {
                 subscription.Dispose();
             }
+            _subscriptions.Clear();
         }
 
         protected void Own(IDisposable unSub)
