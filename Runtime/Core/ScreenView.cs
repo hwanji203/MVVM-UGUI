@@ -1,9 +1,13 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace MVVMGUI.Core
 {
     public abstract class ScreenView<T> : MonoBehaviour where T : AbstractViewModel
     {
+        public Action OnOpen;
+        public Action OnClose;
+        
         private T _vm;
 
         private void Awake()
@@ -11,6 +15,7 @@ namespace MVVMGUI.Core
             _vm = CreateVM();
             Initialize();
             Bind(_vm);
+            gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -22,6 +27,18 @@ namespace MVVMGUI.Core
         /// 여기서 vm에 있는 Bindable들을 Bind한다.
         /// </summary>
         protected virtual void Bind(T vm) { }
+
+        public virtual void Open()
+        {
+            gameObject.SetActive(true);
+            OnOpen?.Invoke();
+        }
+
+        public virtual void Close()
+        {
+            gameObject.SetActive(false);
+            OnClose?.Invoke();
+        }
 
         // 하위 View 가 OnDestroy 를 쓰면 override 하고 base.OnDestroy() 를 부른다
         protected virtual void OnDestroy()
