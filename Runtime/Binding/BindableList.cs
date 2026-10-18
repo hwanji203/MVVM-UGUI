@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MVVMSystem.Runtime.Binding
+namespace MVVMGUI.Runtime.Binding
 {
     public class BindableList<T> : IReadOnlyBindableList<T>
     {

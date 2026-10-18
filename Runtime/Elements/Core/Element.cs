@@ -1,7 +1,7 @@
 ﻿using DG.Tweening;
 using UnityEngine;
 
-namespace MVVMSystem.Runtime.Elements.Core
+namespace MVVMGUI.Runtime.Elements.Core
 {
     public abstract class Element : MonoBehaviour
     {

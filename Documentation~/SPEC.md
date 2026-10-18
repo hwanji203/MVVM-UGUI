@@ -1,4 +1,4 @@
-# MVVMSystem 아키텍처
+# MVVMGUI 아키텍처
 
 화면마다 **ViewModel + View + 프리팹**만 작성하도록 반복되는 UI 연결을 공용화한다.
 이 문서는 직접 구현할 때 참고할 구조 지도다. 메서드 형태와 내부 구현은 직접 정한다. 기존 세부 설계는 [DESIGN.md](DESIGN.md), 진행·결정 기록은 [ROADMAP.md](ROADMAP.md)에 있다.
@@ -52,4 +52,4 @@
 프로젝트 연결점은 두 가지다. **클릭 소리**는 `UISoundSO`의 기본 구현 또는 프로젝트 구현을 끼우고, **화면 요청**은 프로젝트의 연결 컴포넌트가 받아 ScreenManager를 호출한다. 게임별 Model·ViewModel·View와 연결 코드는 프로젝트에 둔다.
 
 구현 순서: **바인딩·ViewModel 기반 → 기본 Element → View·생성기 → 화면·팝업 관리 → 목록 UI → 실제 화면**.
-공용 코드는 MVVMSystem 저장소에서 직접 작성하고, Project_B의 로컬 패키지 참조로 전투 HUD까지 연결해 검증한다.
+공용 코드는 MVVMGUI 저장소에서 직접 작성하고, Project_B의 로컬 패키지 참조로 전투 HUD까지 연결해 검증한다.

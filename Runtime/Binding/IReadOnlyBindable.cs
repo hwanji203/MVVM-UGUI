@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MVVMSystem.Runtime.Binding
+namespace MVVMGUI.Runtime.Binding
 {
     public interface IReadOnlyBindable<T>
     {

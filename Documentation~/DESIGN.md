@@ -1,4 +1,4 @@
-# MVVMSystem 설계
+# MVVMGUI 설계
 
 > UGUI 용 MVVM 틀. 2026-10-14 ~ 15 사용자 (hwanji203, 이니셜 JTH) 와 Claude 가 대화로 확정했다.
 > 원본 설계: Project_B `Docs/design/unity-ui-architecture.md` (게임 내용이 섞여 있음). 이 문서는 그중 **틀에 해당하는 부분만** 프로젝트와 무관하게 옮긴 것이다.
@@ -116,7 +116,7 @@ Dead    = Bindable.Select(Hp, h => h <= 0).bindable;               // Select 는
 
 "원본이 바뀌면 무엇을 갱신할지" 를 **만들 때 한 번** 선언한다. 원본을 바꾸는 이벤트가 늘어도 갱신 코드는 안 는다.
 **해제 (사용자 2026-10-18):** 파생 값은 원본 구독을 끊을 수 있어야 한다. 원본이 VM 자신의 값이면 같이 버려지므로 끊지 않아도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own` — 안 하면 화면을 닫아도 원본이 파생 값을 붙잡아 계속 다시 계산된다. `Combine` 은 값과 해제가 한 객체 (생성자가 원본을 구독, `Dispose` 로 끊음), `Select` 는 아직 튜플. `Own` 을 잊어도 컴파일은 되므로 오래 사는 원본일 때는 리뷰로 본다.
-`[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVMSystem.Runtime.Binding` (ROADMAP "정한 세부").
+`[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVMGUI.Runtime.Binding` (ROADMAP "정한 세부").
 
 ### 2.3 `Command` (확정)
 
@@ -319,15 +319,15 @@ public partial class SettingView : PopupView<SettingViewModel>
 ### 7.1 구성
 
 ```
-MVVMSystem/                     (패키지 루트 = 저장소 루트, com.banggae.mvvmsystem)
+MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.mvvmgui)
  ├ package.json · README.md · AGENTS.md
  ├ Documentation~/  DESIGN.md (이 문서) · ROADMAP.md · HANDOFF-APES.md   (~ 로 끝나는 폴더는 Unity 가 무시)
- ├ Runtime/  (asmdef MVVMSystem)          Binding · ViewModel · Elements · ScreenView · PopupView · ScreenManager · UISoundSO
- ├ Editor/   (asmdef MVVMSystem.Editor)   Element 속성 · 자동 연결 생성기
- └ Tests/    (asmdef MVVMSystem.Tests)    EditMode 테스트
+ ├ Runtime/  (asmdef MVVMGUI)          Binding · ViewModel · Elements · ScreenView · PopupView · ScreenManager · UISoundSO
+ ├ Editor/   (asmdef MVVMGUI.Editor)   Element 속성 · 자동 연결 생성기
+ └ Tests/    (asmdef MVVMGUI.Tests)    EditMode 테스트
 ```
 
-- namespace `MVVMSystem` (`[세부]` 하위 namespace).
+- namespace `MVVMGUI` (`[세부]` 하위 namespace).
 - **Unity 6000.3 기준** — 더 새 버전에만 있는 API 는 쓰지 않는다.
 - 의존: UGUI (TMP 포함) — `package.json`. **DOTween** 은 선언할 수 없어 프로젝트에 설치되어 있어야 한다.
 
@@ -335,7 +335,7 @@ MVVMSystem/                     (패키지 루트 = 저장소 루트, com.bangga
 
 | 프로젝트 | 참조 |
 | --- | --- |
-| Project_B (사용자 혼자, Unity 6000.6) | `file:../../../MVVMSystem` (로컬) + `testables` |
+| Project_B (사용자 혼자, Unity 6000.6) | `file:../../../MVVMGUI` (로컬) + `testables` |
 | Apes (팀, Unity 6000.3) | git URL + 태그 (사용자 10-18). 화면과 나머지 부품은 Apes 에서 함께 만든다 — 사용자 PC 에서는 `Packages/` 에 이 저장소 clone 을 내장 패키지로 두고 고친다 (ROADMAP "Apes 에서 고치는 흐름") |
 
 ### 7.3 프로젝트와 잇는 곳 (둘 다 선택)
@@ -355,4 +355,4 @@ MVVMSystem/                     (패키지 루트 = 저장소 루트, com.bangga
 
 ## 현재 작업 담당 (2026-10-18)
 
-2026-10-18 최신 결정 (10-15 결정을 바꿈): 사용자는 핵심 코드만 직접 작성하고, 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (경계는 `AGENTS.md` "현재 작업 담당"). Project_B에서 먼저 검증한다. 공용 코드는 MVVMSystem 패키지 저장소에서 직접 개발한다. Apes에서 구현한 뒤 복사하는 절차는 사용하지 않는다.
+2026-10-18 최신 결정 (10-15 결정을 바꿈): 사용자는 핵심 코드만 직접 작성하고, 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (경계는 `AGENTS.md` "현재 작업 담당"). Project_B에서 먼저 검증한다. 공용 코드는 MVVMGUI 패키지 저장소에서 직접 개발한다. Apes에서 구현한 뒤 복사하는 절차는 사용하지 않는다.

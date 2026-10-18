@@ -1,6 +1,6 @@
-# MVVMSystem 작업 지침 (AI 용)
+# MVVMGUI 작업 지침 (AI 용)
 
-UGUI MVVM 틀 패키지 (`com.banggae.mvvmsystem`). 사람용 설명은 `README.md`.
+UGUI MVVM 틀 패키지 (`com.banggae.mvvmgui`). 사람용 설명은 `README.md`.
 
 1. 먼저 `Documentation~/DESIGN.md` (설계) 와 `Documentation~/ROADMAP.md` (단계 · 현황 · 옮기는 법) 를 읽는다.
 2. 다른 프로젝트 (Apes) 의 작업폴더에서 이어 만드는 중이면 `Documentation~/HANDOFF-APES.md` 도 읽는다 — 그 프로젝트의 규칙이 우선한다.
@@ -17,4 +17,4 @@ UGUI MVVM 틀 패키지 (`com.banggae.mvvmsystem`). 사람용 설명은 `README.
 - **사용자에게 넘기는 것:** 구조·수명 흐름·공개 API 모양을 바꿔야 하거나, DESIGN 의 (확정) 항목과 어긋나는 문제. 고치지 않고 원인과 선택지를 알린다.
 - 공용 코드는 이 저장소에 둔다 (2026-10-18 Project_B DevLib 사본에서 `.meta` 째 옮김). **UI 화면과 틀의 나머지 부품 (Element · PopupView · ScreenManager · 생성기) 은 Apes 에서 화면과 함께 만든다 (사용자 10-18).** Apes 에는 Git URL + 태그로 적용하고 (manifest 변경은 Apes 팀 승인), Project_B 는 `file:` 로컬 참조로 컴파일을 확인한다.
 - Apes 에서 일할 때는 Apes 팀 규칙이 우선한다 (`HANDOFF-APES.md` 1 · 3절의 사실과 지킬 것은 그대로 유효: Apes 저장소 안의 작업은 JTH 폴더 · Unity 6000.3 · git 은 스테이지까지).
-  사용자 PC 의 Apes `Packages/com.banggae.mvvmsystem/` 는 **이 저장소의 clone** (Apes git 이 무시 — `.git/info/exclude`) 이라, 그 안의 commit · push 는 이 저장소 일이다 (ROADMAP "Apes 에서 고치는 흐름", 사용자 10-18).
+  사용자 PC 의 Apes `Packages/com.banggae.mvvmgui/` 는 **이 저장소의 clone** (Apes git 이 무시 — `.git/info/exclude`) 이라, 그 안의 commit · push 는 이 저장소 일이다 (ROADMAP "Apes 에서 고치는 흐름", 사용자 10-18).

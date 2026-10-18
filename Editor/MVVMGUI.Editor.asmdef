@@ -1,10 +1,12 @@
 {
-    "name": "MVVMSystem",
-    "rootNamespace": "MVVMSystem",
+    "name": "MVVMGUI.Editor",
+    "rootNamespace": "MVVMGUI.Editor",
     "references": [
-        "Unity.TextMeshPro"
+        "MVVMGUI"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

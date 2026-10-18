@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MVVMSystem.Runtime.Core
+namespace MVVMGUI.Runtime.Core
 {
     public abstract class AbstractViewModel
     {

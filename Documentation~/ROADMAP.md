@@ -1,7 +1,7 @@
-# MVVMSystem 진행 순서
+# MVVMGUI 진행 순서
 
 > 설계는 `DESIGN.md`. 단계마다 **컴파일 → 테스트 → 기록**. 단계 범위를 넘는 기능은 넣지 않는다.
-> 2026-10-18 최신 결정 (10-15 결정을 바꿈): 사용자는 핵심 코드만 직접 작성하고, 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (경계는 `AGENTS.md` "현재 작업 담당"). Project_B에서 먼저 검증한다. 공용 코드는 MVVMSystem 패키지 저장소에서 직접 개발한다. Apes에서 구현한 뒤 복사하는 절차는 사용하지 않는다.
+> 2026-10-18 최신 결정 (10-15 결정을 바꿈): 사용자는 핵심 코드만 직접 작성하고, 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (경계는 `AGENTS.md` "현재 작업 담당"). Project_B에서 먼저 검증한다. 공용 코드는 MVVMGUI 패키지 저장소에서 직접 개발한다. Apes에서 구현한 뒤 복사하는 절차는 사용하지 않는다.
 > **같은 날 이어서 (사용자): UI 화면과 틀의 나머지 부품은 Apes 에서 화면과 함께 만든다. Apes 에는 Git URL + 태그로 적용한다.** 코드는 이 저장소 `Runtime/` (Project_B DevLib 사본에서 옮김).
 
 ## 현황
@@ -25,7 +25,7 @@
 | 날짜 | 누가 | 무엇 | 이유 |
 | --- | --- | --- | --- |
 | 2026-10-18 | 사용자 | 파생 값은 원본 구독을 끊을 수 있어야 한다. 원본이 VM 자신의 값이면 끊지 않아도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own` (DESIGN 2.2). 처음엔 `Combine` · `Select` 모두 `(bindable, unSub)` 튜플 → 같은 날 **`Combine` 은 `CombineBindable<TR, T1, T2>` 객체** (`IReadOnlyBindable` + `IDisposable`, 생성자가 구독) 로 바꿈. `Select` 는 아직 튜플 | 오래 사는 원본이 구독 람다로 파생 값을 붙잡아, 화면을 닫아도 남아서 계속 다시 계산된다. 튜플은 `unSub` 을 잊기 쉬워 값과 해제를 한 객체로 |
-| 2026-10-18 | 사용자 | 바인딩 하위 namespace = `MVVMSystem.Runtime.Binding` (`Bindable<T>` · 정적 `Bindable` · `BindableList<T>` · `Command`) | 처음 이름 `…Runtime.Bindable` 은 정적 클래스 `Bindable` 과 같아서, 패키지 안 (`MVVMSystem.Runtime.*`) 코드의 `Bindable.Combine` 이 네임스페이스로 잡혀 CS0234 (Roslyn 으로 확인) |
+| 2026-10-18 | 사용자 | 바인딩 하위 namespace = `MVVMGUI.Runtime.Binding` (`Bindable<T>` · 정적 `Bindable` · `BindableList<T>` · `Command`) | 처음 이름 `…Runtime.Bindable` 은 정적 클래스 `Bindable` 과 같아서, 패키지 안 (`MVVMGUI.Runtime.*`) 코드의 `Bindable.Combine` 이 네임스페이스로 잡혀 CS0234 (Roslyn 으로 확인) |
 | 2026-10-18 | 사용자 | `Command` 생성자의 사용 가능 기본값 = `true` (`new Command(action, active = true)`) | 기본값 `false` 면 `new Command(OnClick)` 이 꺼진 버튼으로 시작한다 |
 
 ## 개발 · 적용 방식
@@ -42,11 +42,11 @@ Git URL 패키지는 Apes 안에서 고칠 수 없다 (`Library/PackageCache` �
 
 | 곳 | 역할 |
 | --- | --- |
-| GitHub `hwanji203/MVVMSystem` | 원본. 모든 수정은 결국 여기로 push |
-| Apes `Packages/com.banggae.mvvmsystem/` (사용자 PC 에만) | **주 작업 장소** — 이 저장소의 clone. 고치면 Apes 에 바로 반영. Apes git 은 무시 |
-| `D:/GameDev_C/Projects/Unity/MVVMSystem` | Project_B 가 `file:` 로 쓰는 사본 — 여기서 고치고 push 해도 된다 (두 사본은 같은 원본의 clone 으로 동등) |
+| GitHub `hwanji203/MVVMGUI` | 원본. 모든 수정은 결국 여기로 push |
+| Apes `Packages/com.banggae.mvvmgui/` (사용자 PC 에만) | **주 작업 장소** — 이 저장소의 clone. 고치면 Apes 에 바로 반영. Apes git 은 무시 |
+| `D:/GameDev_C/Projects/Unity/MVVMGUI` | Project_B 가 `file:` 로 쓰는 사본 — 여기서 고치고 push 해도 된다 (두 사본은 같은 원본의 clone 으로 동등) |
 
-1. **처음 한 번** (Apes 세션, Apes 팀 규칙대로): 위 폴더에 clone → Apes 의 `.git/info/exclude` 에 `Packages/com.banggae.mvvmsystem/` (내 PC 전용 — 팀 파일을 안 건드림) → manifest 에 `"com.banggae.mvvmsystem": "https://github.com/hwanji203/MVVMSystem.git#v0.1.0"` (manifest 변경 — 팀 승인 1회).
+1. **처음 한 번** (Apes 세션, Apes 팀 규칙대로): 위 폴더에 clone → Apes 의 `.git/info/exclude` 에 `Packages/com.banggae.mvvmgui/` (내 PC 전용 — 팀 파일을 안 건드림) → manifest 에 `"com.banggae.mvvmgui": "https://github.com/hwanji203/MVVMGUI.git#v0.1.0"` (manifest 변경 — 팀 승인 1회).
 2. **평소**: Apes 에서 화면을 만들다 부품이 필요하면 clone 안의 코드를 고치고, 그 폴더 (= 이 저장소) 에서 commit · push. Apes 저장소의 커밋과는 별개.
    Project_B 쪽 사본에서 고쳐도 된다 (사용자 10-18 확인). **어느 사본이든 고치기 전에 `git pull`, 끝나면 push** — 두 곳에서 따로 커밋하면 갈라진다.
    Project_B (6000.6) 에서 고칠 때는 6000.3 에 있는 API 만 쓴다 — 아니면 Apes 에서 컴파일이 깨진다.

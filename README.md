@@ -1,4 +1,4 @@
-# MVVMSystem
+# MVVMGUI
 
 UGUI 용 MVVM 틀. 화면 하나 만들 때 반복되는 연결 코드를 0 에 가깝게 줄이는 것이 목표다.
 
@@ -13,7 +13,7 @@ UGUI 용 MVVM 틀. 화면 하나 만들 때 반복되는 연결 코드를 0 에 
 `Packages/manifest.json` 의 `dependencies` 에 한 줄:
 
 ```json
-"com.banggae.mvvmsystem": "https://github.com/hwanji203/MVVMSystem.git#v0.1.0"
+"com.banggae.mvvmgui": "https://github.com/hwanji203/MVVMGUI.git#v0.1.0"
 ```
 
 `#` 뒤의 태그가 버전이다. 올릴 때는 태그만 바꾼다.
@@ -25,7 +25,7 @@ UGUI 용 MVVM 틀. 화면 하나 만들 때 반복되는 연결 코드를 0 에 
 
 ## 프로젝트와 연결하는 곳
 
-MVVMSystem 은 특정 이벤트 · 사운드 시스템을 모른다. 프로젝트마다 아래 두 곳만 잇는다.
+MVVMGUI 은 특정 이벤트 · 사운드 시스템을 모른다. 프로젝트마다 아래 두 곳만 잇는다.
 
 | 연결점 | 패키지가 주는 것 | 프로젝트가 하는 일 |
 | --- | --- | --- |

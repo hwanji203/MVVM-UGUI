@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MVVMSystem.Runtime.Core
+namespace MVVMGUI.Runtime.Core
 {
     public abstract class AbstractView<T> : MonoBehaviour where T : AbstractViewModel, new()
     {

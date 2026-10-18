@@ -1,8 +1,8 @@
-﻿using MVVMSystem.Runtime.Elements.Core;
+﻿using MVVMGUI.Runtime.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMSystem.Runtime.Elements
+namespace MVVMGUI.Runtime.Elements
 {
     [RequireComponent(typeof(TextMeshProUGUI))]
     public class TextViewElement : VisualElement<string>

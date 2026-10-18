@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MVVMSystem.Runtime
+namespace MVVMGUI.Runtime
 {
     public class UnSubscriber : IDisposable
     {

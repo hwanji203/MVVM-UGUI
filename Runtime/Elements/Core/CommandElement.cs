@@ -1,7 +1,7 @@
 ﻿using System;
-using MVVMSystem.Runtime.Binding;
+using MVVMGUI.Runtime.Binding;
 
-namespace MVVMSystem.Runtime.Elements.Core
+namespace MVVMGUI.Runtime.Elements.Core
 {
     public abstract class CommandElement : Element
     {
