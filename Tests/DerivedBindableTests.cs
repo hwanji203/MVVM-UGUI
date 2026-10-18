@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using MVVMGUI.Runtime.Binding;
+using MVVMGUI.Binding;
 using NUnit.Framework;
 
 namespace MVVMGUI.Tests

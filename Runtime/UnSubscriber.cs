@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MVVMGUI.Runtime
+namespace MVVMGUI
 {
     public class UnSubscriber : IDisposable
     {

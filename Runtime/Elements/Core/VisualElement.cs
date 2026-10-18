@@ -1,6 +1,6 @@
-﻿using MVVMGUI.Runtime.Binding;
+﻿using MVVMGUI.Binding;
 
-namespace MVVMGUI.Runtime.Elements.Core
+namespace MVVMGUI.Elements.Core
 {
     public abstract class VisualElement<T> : Element
     {

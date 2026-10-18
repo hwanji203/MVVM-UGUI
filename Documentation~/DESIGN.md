@@ -116,7 +116,7 @@ Dead    = Bindable.Select(Hp, h => h <= 0).bindable;               // Select 는
 
 "원본이 바뀌면 무엇을 갱신할지" 를 **만들 때 한 번** 선언한다. 원본을 바꾸는 이벤트가 늘어도 갱신 코드는 안 는다.
 **해제 (사용자 2026-10-18):** 파생 값은 원본 구독을 끊을 수 있어야 한다. 원본이 VM 자신의 값이면 같이 버려지므로 끊지 않아도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own` — 안 하면 화면을 닫아도 원본이 파생 값을 붙잡아 계속 다시 계산된다. `Combine` 은 값과 해제가 한 객체 (생성자가 원본을 구독, `Dispose` 로 끊음), `Select` 는 아직 튜플. `Own` 을 잊어도 컴파일은 되므로 오래 사는 원본일 때는 리뷰로 본다.
-`[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVMGUI.Runtime.Binding` (ROADMAP "정한 세부").
+`[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVMGUI.Binding` (ROADMAP "정한 세부").
 
 ### 2.3 `Command` (확정)
 
@@ -327,7 +327,7 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
  └ Tests/    (asmdef MVVMGUI.Tests)    EditMode 테스트
 ```
 
-- namespace `MVVMGUI` (`[세부]` 하위 namespace).
+- namespace `MVVMGUI` — 하위는 asmdef 폴더 기준 (`MVVMGUI.Binding` · `MVVMGUI.Core` · `MVVMGUI.Elements(.Core)` · `MVVMGUI.Editor` · `MVVMGUI.Tests`, `Runtime` 은 안 붙인다 — ROADMAP "정한 세부").
 - **Unity 6000.3 기준** — 더 새 버전에만 있는 API 는 쓰지 않는다.
 - 의존: UGUI (TMP 포함) — `package.json`. **DOTween** 은 선언할 수 없어 프로젝트에 설치되어 있어야 한다.
 

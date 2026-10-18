@@ -1,13 +1,13 @@
 using System;
-using MVVMGUI.Runtime.Binding;
-using MVVMGUI.Runtime.Core;
+using MVVMGUI.Binding;
+using MVVMGUI.Core;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace MVVMGUI.Tests
 {
-    public class CountingDisposable : Runtime.IDisposable
+    public class CountingDisposable : IDisposable
     {
         public int Count;
         public void Dispose() => Count++;
@@ -18,7 +18,7 @@ namespace MVVMGUI.Tests
         public int DisposeCount;
         public readonly Bindable<int> Hp = new();
 
-        public void OwnForTest(Runtime.IDisposable unSub) => Own(unSub);
+        public void OwnForTest(IDisposable unSub) => Own(unSub);
 
         public override void Dispose()
         {

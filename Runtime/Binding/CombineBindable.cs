@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MVVMGUI.Runtime.Binding
+namespace MVVMGUI.Binding
 {
     public class CombineBindable<T, T1, T2> : IReadOnlyBindable<T>, IDisposable
     {

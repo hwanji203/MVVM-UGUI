@@ -1,4 +1,4 @@
-﻿namespace MVVMGUI.Runtime
+﻿namespace MVVMGUI
 {
     public interface IDisposable
     {

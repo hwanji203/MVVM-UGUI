@@ -1,8 +1,8 @@
-﻿using MVVMGUI.Runtime.Elements.Core;
+﻿using MVVMGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Runtime.Elements
+namespace MVVMGUI.Elements
 {
     [RequireComponent(typeof(Button))]
     public class ButtonElement : CommandElement
