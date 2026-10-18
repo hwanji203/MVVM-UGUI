@@ -3,6 +3,7 @@
     "rootNamespace": "MVVMGUI.Tests",
     "references": [
         "MVVMGUI",
+        "MVVMGUI.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

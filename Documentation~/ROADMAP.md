@@ -11,7 +11,7 @@
 | P0 | 완료 (10-15, Claude) | 저장소 · `package.json` · asmdef 2개 · README · 이 문서들 | Project_B 에서 패키지 인식, 기존 테스트 통과 |
 | **UI0** | 다음 | 바인딩: `Bindable` · `IReadOnlyBindable` · `Select` · `Combine` · `Command` · `BindableList` · `ViewModel` (`Own`) + 테스트 asmdef | DESIGN 8절의 Bindable · Command · BindableList · ViewModel 테스트 통과 |
 | UI2 | | 기본 Element: `Element` · `ValueElement` · Label · Gauge · Button (+ `UISoundSO` · `AudioSourceUISoundSO`) · Toggle · Slider · Switch · Visible, `Reset()` 채우기 | 빈 씬에서 각 Element 를 Bindable 에 묶어 값이 바뀌면 화면이 따라감 (수동 확인 방법을 기록) |
-| UI3 | | `ScreenView<TVM>` (지금 `AbstractView`) + 생성기 (partial `.g.cs` Element 속성만 — 자동 연결 없음, 10-18) · 프리팹 저장 때 생성 · 어긋남 검사 | 테스트 프리팹으로 생성 결과 확인, 생성기 테스트 통과 |
+| UI3 | (사용자 확인 대기) | `ScreenView<TVM>` (사용자 10-18) + 생성기 (partial `.g.cs` Element 속성 + 숨은 배열 — 자동 연결 없음, Claude 10-18) · 프리팹 저장 때 생성 · 인스펙터 버튼 · 처음 생성은 컴파일 뒤 이어 채움 | 테스트 프리팹으로 생성 결과 확인, 생성기 테스트 통과 — 10-18 Project_B 임시 프리팹으로 확인 (버튼 경로 · 컴파일 뒤 채우기 · 프리팹 모드 저장 때 다시 생성), 생성기 테스트 14개 통과 |
 | UI4 | | `ScreenManager` (`Open<T>` · `Close` · 스택 · 여러 개) · `PopupView` | 팝업 열기 · 닫기 · 배경 클릭 닫기 · 두 개 겹쳐 띄우기 |
 | UI5 | | `BindableList` 를 쓰는 `ListElement` · `ItemView` | 항목 추가 · 삭제 · 교체가 화면에 반영 |
 | UI6 | | 실제 화면 하나로 검증 | Apes: 사용자가 정한 화면 (10-18: Element 와 함께 Apes 에서). Project_B: 전투 HUD 는 틀이 갖춰진 뒤 `[?]` |

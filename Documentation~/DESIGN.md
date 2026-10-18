@@ -237,20 +237,23 @@ public class AudioSourceUISoundSO : UISoundSO { … }      // 패키지 기본 �
 
 ```csharp
 // BattleHudView.Elements.g.cs — 생성됨, 손대지 않음
-public partial class BattleHudView
+partial class BattleHudView
 {
-    private LabelElement HpText => (LabelElement)Elements[0];
-    private GaugeElement HpGauge => (GaugeElement)Elements[1];
-    private ButtonElement PauseButton => (ButtonElement)Elements[2];
+    [SerializeField, HideInInspector]
+    private Element[] generatedElements;          // 프리팹에 참조가 저장되는 곳 (사용자 10-18: ScreenView 가 아니라 생성된 파일에)
+
+    private TextViewElement HpText => (TextViewElement)generatedElements[0];
+    private ButtonElement PauseButton => (ButtonElement)generatedElements[1];
 }
 ```
 
-- 대상: **`Element` 컴포넌트가 붙은 자식.** 생성기가 View 의 `Element[] Elements` 에 **참조를 저장**하고, 그 위에 타입 있는 속성을 쓴다 → 생성은 한 번에 끝난다 (필드 생성 → 컴파일 대기 → 참조 넣기 두 단계를 피한다).
-- 속성 이름 = 오브젝트 이름 (C# 이름으로 다듬음). `[세부]` 같은 이름이 둘이면 생성을 멈추고 알린다.
-- 안쪽에 다른 `ScreenView` · `ItemView` 가 있으면 그 아래는 스캔하지 않는다.
-- 생성 뒤 컴포넌트가 바뀌어 배열과 속성이 어긋나면 `OnValidate` · `Awake` 에서 알린다 (속성 · 기대 타입 · 실제 타입).
-- View 클래스에는 `partial` 만 붙인다. 생성 파일은 View 스크립트 옆 `<View>.Elements.g.cs`.
-- **언제 생성 (확정)**: 프리팹 저장 때 (`PrefabStage.prefabSaving`) + 인스펙터 버튼 (수동). 내용이 같으면 파일을 다시 쓰지 않는다. (자동 연결이 없어져 ViewModel 과 비교할 일이 없으므로 "스크립트 컴파일이 끝날 때" 다시 생성은 뺐다 — 사용자 10-18.)
+- 대상: View 오브젝트의 **자식 (꺼진 것 포함) 에 붙은 `Element` 컴포넌트**, 계층 순서. View 자신에 붙은 Element 는 빼고, 안쪽에 다른 `ScreenView` 가 붙은 오브젝트는 그 아래까지 그 View 의 것이라 뺀다.
+- **배열은 생성된 파일에 있다** (사용자 10-18 — ScreenView 에 두면 헷갈린다). 그래서 **처음 한 번은 두 단계**: 파일 쓰기 → 컴파일 → 배열 채우기. 생성기가 기다릴 대상을 `SessionState` 에 적어 두고 `[DidReloadScripts]` 에서 이어 채운다 (프리팹은 디스크의 것을 `LoadPrefabContents` → `SaveAsPrefabAsset`). 그 뒤에는 필드가 있으니 한 번에 끝난다.
+  배열 이름 `generatedElements` 를 바꾸면 프리팹의 참조가 끊긴다.
+- 속성 이름 = 오브젝트 이름에서 C# 에 못 쓰는 글자를 뺀 것 (숫자로 시작하면 `_`, 키워드면 `@`). 이름이 비거나 겹치면 **파일을 건드리지 않고 멈추고** 어느 오브젝트인지 알린다.
+- View 클래스에는 `partial` 만 붙인다 (없으면 멈추고 알림). 생성 파일은 View 스크립트 옆 `<View>.Elements.g.cs`, 타입은 `global::` 전체 이름이라 `using` 이 필요 없다. 제네릭 · 중첩 클래스 View 는 생성하지 않는다.
+- **언제 생성 (확정)**: 프리팹 모드에서 저장할 때 (`PrefabStage.prefabSaving`) · GameObject 인스펙터 머리의 **"MVVMGUI · Element 속성 생성"** 버튼 · `Tools/MVVMGUI/선택한 View 의 Element 속성 생성`. 내용이 같으면 파일을 다시 쓰지 않는다. (자동 연결이 없어져 "스크립트 컴파일이 끝날 때" 다시 생성은 뺐다 — 사용자 10-18.)
+- 어긋남: 저장할 때마다 다시 만들므로 배열과 속성은 맞춰진다. 프리팹을 저장하지 않은 채 Element 종류만 바꾸면 실행 중 형변환 예외가 난다 — 그때는 버튼으로 다시 생성. (처음 설계의 `OnValidate` · `Awake` 검사는 생성된 파일이 하위 View 의 같은 이름 메서드와 부딪혀 넣지 않았다 `[세부]`.)
 
 ### 4.2 자동 연결은 없다 (사용자 2026-10-18 — 처음 설계의 `AutoBind` 를 뺐다)
 
