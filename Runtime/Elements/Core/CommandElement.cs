@@ -6,21 +6,19 @@ namespace MVVMGUI.Elements.Core
     public abstract class CommandElement : Element
     {
         protected Action CallCommand;
-        private IDisposable _unSubValueChange;
 
         public void Bind(Command source)
         {
-            _unSubValueChange?.Dispose();
-            (CallCommand, _unSubValueChange) = source.Bind(HandleActiveChanged);
+            Unbind();
+            var (call, unSub) = source.Bind(HandleActiveChanged);
+            CallCommand = call;
+            Bindings.Add(unSub);
         }
 
-        public override void OnDestroy()
+        public override void Unbind()
         {
-            _unSubValueChange?.Dispose();
-            _unSubValueChange = null;
+            base.Unbind();
             CallCommand = null;
-
-            base.OnDestroy();
         }
 
         protected abstract void HandleActiveChanged(bool enable);

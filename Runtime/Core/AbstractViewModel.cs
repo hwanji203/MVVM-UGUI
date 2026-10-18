@@ -1,27 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MVVMGUI.Core
+﻿namespace MVVMGUI.Core
 {
     public abstract class AbstractViewModel
     {
-        private List<IDisposable> _subscriptions = new List<IDisposable>();
+        private readonly DisposableBag _owned = new();
 
-        public virtual void Dispose()
-        {
-            foreach (var subscription in _subscriptions)
-            {
-                subscription.Dispose();
-            }
-            _subscriptions.Clear();
-        }
+        public virtual void Dispose() => _owned.Clear();
 
-        protected void Own(IDisposable unSub)
-        {
-            if (unSub == null)
-                throw new ArgumentNullException(nameof(unSub));
-            
-            _subscriptions.Add(unSub);
-        }
+        protected void Own(IDisposable unSub) => _owned.Add(unSub);
     }
 }

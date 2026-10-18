@@ -32,6 +32,8 @@ UI0 테스트: `Tests/` (asmdef `MVVMGUI.Tests`, Editor 전용, `UNITY_INCLUDE_T
 | 2026-10-18 | 사용자 | namespace 는 **asmdef 폴더 기준, `Runtime` 없이**: `MVVMGUI` (IDisposable · UnSubscriber) · `MVVMGUI.Binding` · `MVVMGUI.Core` · `MVVMGUI.Elements` · `MVVMGUI.Elements.Core` · `MVVMGUI.Editor` · `MVVMGUI.Tests` | Rider 는 asmdef 가 있는 폴더 (`Runtime/`) 를 뿌리로 보고 네임스페이스를 기대한다 — `MVVMGUI.Runtime.*` 는 어긋남 경고. 설계 문서도 처음부터 `MVVMGUI.Binding` 꼴 |
 | 2026-10-18 | 사용자 | `Command` 생성자의 사용 가능 기본값 = `true` (`new Command(action, active = true)`) | 기본값 `false` 면 `new Command(OnClick)` 이 꺼진 버튼으로 시작한다 |
 | 2026-10-18 | 사용자 | **자동 연결 (`AutoBind`) 은 없앤다** — 생성기는 Element 속성만, 연결은 전부 View 의 `Bind` 에 손으로 (DESIGN 4.2). 생성 시점도 프리팹 저장 + 버튼만 (컴파일 뒤 다시 생성 뺌) | 자동으로 `A ↔ a` 가 묶인 뒤 손으로 `B ↔ a` 를 묶으면 A 의 연결이 안 끊겨 둘 다 `a` 를 본다. 막으려면 이름 바꾸기 · `Unbind` · 제외 표시가 필요하고 연결이 코드에 다 안 드러난다 |
+| 2026-10-18 | 사용자 (구현은 Claude 에 맡김) | **Element 의 구독은 바탕 `Element` 의 `DisposableBag Bindings` 하나에 담는다.** 하위 Element 는 `Bind` 에서 먼저 `Unbind()` (= 바구니 비우기) 하고 담는다. `Element.OnDestroy` 는 `protected virtual` 이고 `Unbind()` 를 부른다. `CommandElement` 는 `Unbind` 를 덮어 `CallCommand` 도 비운다. `AbstractViewModel` 의 `Own` 도 같은 `DisposableBag` 을 쓴다 | Element 마다 해제 핸들 · `?.Dispose()` · `= null` 을 반복했고 빠뜨리기 쉬웠다 (`ReadOnlyListElement` 의 요소 구독 누락). 설계의 `Unbind()` 도 생긴다. 한 Element 가 서로 다른 원본 둘을 따로 묶게 되면 한쪽 재바인딩이 다른 쪽도 끊으니 그때 다시 본다 |
+| 2026-10-18 | 사용자 | 바탕 View 이름 `ScreenView<T>` (`AbstractView` 에서 바꿈) | 설계 문서 이름과 맞춤 |
 | 2026-10-18 | Claude (디버깅) | `AbstractView` 의 `new()` 제약 삭제 · 파괴될 때 VM `Dispose` (`protected virtual OnDestroy` — 하위가 쓰면 `base.OnDestroy()`) · `AbstractViewModel.Dispose` 뒤 목록 비움 | `CreateVM` 이 있어 `new()` 는 생성자에 SO 를 받는 VM 만 막았다 · `Own` 한 구독이 풀리지 않았다 · 두 번 `Dispose` 하면 두 번 풀렸다 |
 
 ## 개발 · 적용 방식
