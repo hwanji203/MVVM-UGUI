@@ -2,7 +2,7 @@
 
 namespace MVVMGUI.Core
 {
-    public abstract class AbstractView<T> : MonoBehaviour where T : AbstractViewModel
+    public abstract class ScreenView<T> : MonoBehaviour where T : AbstractViewModel
     {
         private T _vm;
 

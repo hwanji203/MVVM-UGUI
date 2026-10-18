@@ -72,7 +72,7 @@ namespace MVVMGUI.Tests
         public void Select_ComputesAndFollowsSource()
         {
             var hp = new Bindable<int> { Value = 5 };
-            var (dead, _) = Bindable.Select(hp, h => h <= 0);
+            var dead = Bindable.Select(hp, h => h <= 0);
             var received = new List<bool>();
             dead.Bind(received.Add);
 
@@ -82,12 +82,12 @@ namespace MVVMGUI.Tests
         }
 
         [Test]
-        public void Select_UnSub_StopsFollowing()
+        public void Select_Dispose_StopsFollowing()
         {
             var hp = new Bindable<int> { Value = 5 };
-            var (doubled, unSub) = Bindable.Select(hp, h => h * 2);
+            var doubled = Bindable.Select(hp, h => h * 2);
 
-            unSub.Dispose();
+            doubled.Dispose();
             hp.Value = 50;
 
             Assert.AreEqual(10, doubled.Value);

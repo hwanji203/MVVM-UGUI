@@ -32,17 +32,8 @@ namespace MVVMGUI.Binding
     public static class Bindable
     {
         //Bindable을 받아서 그 값이 변경되면 Select하여 값의 변경을 알리는 Bindable을 반환하기
-        public static (IReadOnlyBindable<TR> bindable, IDisposable unSub) Select<TR, T1>(IReadOnlyBindable<T1> item1, Func<T1, TR> action)
-        {
-            if (item1 is null || action is null)
-                throw new ArgumentNullException();
-
-            Bindable<TR> newBindable = new Bindable<TR>();
-            
-            IDisposable unSubItem1 = item1.Bind(i1 => newBindable.Value = action(i1));
-            
-            return (newBindable, unSubItem1);
-        }
+        public static SelectBindable<TR, T1> Select<TR, T1>(IReadOnlyBindable<T1> item1, Func<T1, TR> action)
+            => new (item1, action);
         
         //Bindable을 2개 받아서 둘 중 하나가 변경되면 action에 따라 값을 변경하는 Bindable 반환.
         public static CombineBindable<TR, T1, T2> Combine<TR, T1, T2>(IReadOnlyBindable<T1> item1, 

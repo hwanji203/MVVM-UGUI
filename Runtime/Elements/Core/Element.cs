@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MVVMGUI.Elements.Core
 {
-    public abstract class Element : MonoBehaviour
+    public class Element : MonoBehaviour
     {
         protected RectTransform RectTrm;
         protected Sequence Seq;

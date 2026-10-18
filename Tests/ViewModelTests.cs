@@ -28,7 +28,7 @@ namespace MVVMGUI.Tests
     }
 
     [ExecuteAlways]
-    public class TestView : AbstractView<TestViewModel>
+    public class TestView : ScreenView<TestViewModel>
     {
         public TestViewModel Created;
         public TestViewModel BoundWith;
