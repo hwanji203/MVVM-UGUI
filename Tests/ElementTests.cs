@@ -27,7 +27,7 @@ namespace MVVMGUI.Tests
     public class TestCommandElement : CommandElement
     {
         public readonly List<bool> Active = new();
-        public void Click() => CallCommand?.Invoke();
+        public void Click() => Execute();
         protected override void HandleActiveChanged(bool enable) => Active.Add(enable);
     }
 

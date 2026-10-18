@@ -123,9 +123,10 @@ Dead    = Bindable.Select(Hp, h => h <= 0).bindable;               // Select 는
 ```csharp
 public class Command
 {
-    public Command(Action execute, IReadOnlyBindable<bool> canExecute = null);
-    public IReadOnlyBindable<bool> CanExecute { get; }
-    public void Execute();                // CanExecute 가 false 면 무시
+    public Command(Action command, bool active = true);
+    public IReadOnlyBindable<bool> Active { get; }
+    public void Execute();                // Active 가 false 면 무시
+    public void SetEnabled(bool active);
 }
 ```
 
@@ -207,7 +208,7 @@ protected override void Apply(float v) => slider.SetValueWithoutNotify(v);   // 
 | `LabelElement` (TMP) | `string` | 원래 글에 `{0}` 이 있으면 포맷으로. `[세부]` `int` 편의 오버로드 |
 | `GaugeElement` (Image fill) | `float` 0~1 | 트윈 |
 | `CooldownElement` | `float` 0~1 | `[세부]` |
-| `ButtonElement` | `Command` | `CanExecute` false 면 잠김. 클릭 소리 (3.5) |
+| `ButtonElement` | `Command` | `Active` false 면 잠김. 클릭 소리 (3.5) |
 | `SliderElement` | `Bindable<float>` 양방향 | |
 | `ToggleElement` | `Bindable<bool>` 양방향 | |
 | `SwitchElement` | `int` | 자식 중 하나만 켠다 |
@@ -343,7 +344,7 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
 ## 8. 테스트 (EditMode)
 
 - `Bindable`: 같은 값 무시 · 구독 즉시 현재 값 · `notifyNow: false` · 해제 뒤 알림 없음 · `Combine` 재계산.
-- `Command`: `CanExecute` false 면 무시. `BindableList`: 알림 순서 · 인덱스.
+- `Command`: `Active` false 면 무시. `BindableList`: 알림 순서 · 인덱스.
 - `ViewModel`: `Own` 한 것이 `Dispose` 에서 풀린다.
 - 생성기: 같은 이름 · 중첩 View 경계 · 생성 코드의 타입 = 실제 컴포넌트 · 내용이 같으면 다시 쓰지 않음.
 

@@ -1,25 +1,26 @@
-﻿using System;
-using MVVMGUI.Binding;
+﻿using MVVMGUI.Binding;
 
 namespace MVVMGUI.Elements.Core
 {
     public abstract class CommandElement : Element
     {
-        protected Action CallCommand;
+        private Command _command;
 
         public void Bind(Command source)
         {
             Unbind();
-            var (call, unSub) = source.Bind(HandleActiveChanged);
-            CallCommand = call;
-            Bindings.Add(unSub);
+            _command = source;
+            Bindings.Add(source.Active.Bind(HandleActiveChanged));
         }
 
         public override void Unbind()
         {
             base.Unbind();
-            CallCommand = null;
+            _command = null;
         }
+
+        // 눌렸을 때 하위 Element 가 부른다
+        protected void Execute() => _command?.Execute();
 
         protected abstract void HandleActiveChanged(bool enable);
     }

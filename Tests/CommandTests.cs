@@ -7,50 +7,48 @@ namespace MVVMGUI.Tests
     public class CommandTests
     {
         [Test]
-        public void DefaultActive_CallRunsAction()
+        public void DefaultActive_ExecuteRunsAction()
         {
             var runs = 0;
             var command = new Command(() => runs++);
-            var (call, _) = command.Bind(_ => { });
 
-            call();
+            command.Execute();
 
             Assert.AreEqual(1, runs);
         }
 
         [Test]
-        public void Disabled_CallDoesNothing()
+        public void Disabled_ExecuteDoesNothing()
         {
             var runs = 0;
             var command = new Command(() => runs++);
-            var (call, _) = command.Bind(_ => { });
 
             command.SetEnabled(false);
-            call();
+            command.Execute();
 
             Assert.AreEqual(0, runs);
         }
 
         [Test]
-        public void Bind_ReceivesActiveStateNowAndOnChange()
+        public void Active_ReceivesStateNowAndOnChange()
         {
             var command = new Command(() => { }, active: false);
             var received = new List<bool>();
 
-            command.Bind(received.Add);
+            command.Active.Bind(received.Add);
             command.SetEnabled(true);
 
             CollectionAssert.AreEqual(new[] { false, true }, received);
         }
 
         [Test]
-        public void UnSub_StopsActiveNotifications()
+        public void Active_Dispose_StopsNotifications()
         {
             var command = new Command(() => { });
             var received = new List<bool>();
-            var (_, unSub) = command.Bind(received.Add);
+            var binding = command.Active.Bind(received.Add);
 
-            unSub.Dispose();
+            binding.Dispose();
             command.SetEnabled(false);
 
             CollectionAssert.AreEqual(new[] { true }, received);

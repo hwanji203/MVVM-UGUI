@@ -13,16 +13,16 @@ namespace MVVMGUI.Elements
         {
             base.Awake();
 
-            button.onClick.AddListener(() => CallCommand?.Invoke());
+            button.onClick.AddListener(Execute);
         }
 
         protected override void HandleActiveChanged(bool enable)
             => button.interactable = enable;
-        
-        private void OnValidate()
+
+        // 컴포넌트를 붙이는 순간 (또는 인스펙터의 Reset) 같은 오브젝트의 Button 을 잡는다
+        private void Reset()
         {
-            if (button == null)
-                button = GetComponent<Button>();
+            button = GetComponent<Button>();
         }
     }
 }

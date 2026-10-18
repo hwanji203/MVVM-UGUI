@@ -14,10 +14,10 @@ namespace MVVMGUI.Elements
             tmp.text = value;
         }
 
-        private void OnValidate()
+        // 컴포넌트를 붙이는 순간 (또는 인스펙터의 Reset) 같은 오브젝트의 TMP 를 잡는다
+        private void Reset()
         {
-            if (tmp == null)
-                tmp = GetComponent<TextMeshProUGUI>();
+            tmp = GetComponent<TextMeshProUGUI>();
         }
     }
 }
