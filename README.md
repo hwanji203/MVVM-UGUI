@@ -22,6 +22,8 @@ UGUI 용 MVVM 틀. 화면 하나 만들 때 반복되는 연결 코드를 0 에 
 
 - Unity 6000.3 이상, UGUI (TextMeshPro 포함)
 - **DOTween** — 패키지 의존성으로 선언할 수 없어 프로젝트에 직접 설치되어 있어야 한다.
+- **UniTask** (2.5.11 이상, Unity 6000.2+ 에서는 2.5.10 이하가 에디터 코드에서 컴파일 오류) — 화면 열기 · 닫기 (`ScreenView.Open` · `Close`) 가 `UniTask` 를 돌려준다. Git 패키지라 의존성으로 선언할 수 없어 직접 설치한다:
+  `"com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.11"`
 
 ## 프로젝트와 연결하는 곳
 

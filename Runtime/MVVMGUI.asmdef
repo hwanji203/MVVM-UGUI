@@ -2,7 +2,8 @@
     "name": "MVVMGUI",
     "rootNamespace": "MVVMGUI",
     "references": [
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

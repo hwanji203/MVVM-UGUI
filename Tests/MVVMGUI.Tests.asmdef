@@ -4,6 +4,7 @@
     "references": [
         "MVVMGUI",
         "MVVMGUI.Editor",
+        "UniTask",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

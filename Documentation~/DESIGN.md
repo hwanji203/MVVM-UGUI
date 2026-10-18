@@ -286,6 +286,20 @@ public partial class BattleHudView : ScreenView<BattleHudViewModel>
 
 ## 5. 화면 열기 · 닫기 (확정)
 
+### 5.0 `ScreenView` 의 열기 · 닫기 (사용자 10-18, 비동기는 UniTask)
+
+```csharp
+public async UniTask Open();    // SetActive(true) → await PlayOpen(token) → OnOpen
+public async UniTask Close();   // await PlayClose(token) → SetActive(false) → OnClose (이미 꺼져 있으면 아무것도 안 함)
+protected virtual UniTask PlayOpen(CancellationToken token);    // 하위 View (PopupView) 가 트윈 · 연출을 넣는 자리, 기본은 바로 끝
+protected virtual UniTask PlayClose(CancellationToken token);
+```
+
+- `Awake` 끝에서 꺼 둔다 — 열기 전까지 숨어 있다.
+- 연출 중에 다른 `Open` · `Close` 가 오면 이전 것은 **취소** (`OnOpen` · `OnClose` 없이 끝난다). 파괴되면 (`destroyCancellationToken`) 도 취소.
+  하위 View 는 받은 `token` 을 트윈 대기에 넘겨야 취소가 먹힌다.
+- 기다릴 필요가 없으면 `view.Open().Forget();`. `ScreenManager` 는 `await` 로 순서를 맞출 수 있다 (닫힌 뒤 다음 열기 등).
+
 ### 5.1 `ScreenManager`
 
 - 씬에 두는 **일반 컴포넌트** (싱글톤 아님). 자기 씬의 화면 프리팹 목록을 `[SerializeField]` 로 들고 시작할 때 만든다.
