@@ -1,0 +1,22 @@
+﻿using DG.Tweening;
+using UnityEngine;
+
+namespace MVVMSystem.Runtime.Elements.Core
+{
+    public abstract class Element : MonoBehaviour
+    {
+        protected RectTransform RectTrm;
+        protected Sequence Seq;
+
+        protected virtual void Awake()
+        {
+            RectTrm = GetComponent<RectTransform>();
+        }
+
+        public virtual void OnDestroy()
+        {
+            Seq?.Kill();
+            Seq = null;
+        }
+    }
+}
