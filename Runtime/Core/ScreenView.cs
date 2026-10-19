@@ -20,7 +20,7 @@ namespace MVVMGUI.Core
         /// <summary>
         /// 켜고 → 열기 연출 (<see cref="PlayOpen"/>) 을 기다린 뒤 → OnOpen. 연출 중에 다른 열기 · 닫기가 오면 OnOpen 없이 끝난다.
         /// </summary>
-        public async UniTask Open()
+        public async UniTask OpenAsync()
         {
             var token = BeginTransition();
             gameObject.SetActive(true);
@@ -33,7 +33,7 @@ namespace MVVMGUI.Core
         }
 
         /// <summary>닫기 연출 (<see cref="PlayClose"/>) 을 기다린 뒤 → 끄고 → OnClose. 이미 꺼져 있으면 아무것도 하지 않는다.</summary>
-        public async UniTask Close()
+        public async UniTask CloseAsync()
         {
             if (!gameObject.activeSelf)
                 return;
@@ -74,6 +74,8 @@ namespace MVVMGUI.Core
             //CreateLinkedTokenSource가 있기 때문에 파괴될 때 이미 Cancel을 부르고 있기는 하지만, 자식이 OnDestroy를 빼먹을 수도 있기 때문에 안전코드
             CancelTransition();
         }
+
+        public Type GetVMType() { throw new NotImplementedException(); }
     }
 
     /// <summary>ViewModel 을 쓰는 화면. T 덕분에 CreateVM · Bind 가 형변환 없이 자기 ViewModel 을 받는다.</summary>

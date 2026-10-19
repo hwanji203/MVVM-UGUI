@@ -295,16 +295,16 @@ public partial class BattleHudView : ScreenView<BattleHudViewModel>
 - 나눈 이유: `ScreenView<A>` 와 `ScreenView<B>` 는 C# 에서 관계없는 타입이라 "어떤 화면이든" 을 가리킬 공통 타입이 없었다.
 
 ```csharp
-public async UniTask Open();    // SetActive(true) → await PlayOpen(token) → OnOpen
-public async UniTask Close();   // await PlayClose(token) → SetActive(false) → OnClose (이미 꺼져 있으면 아무것도 안 함)
+public async UniTask OpenAsync();    // SetActive(true) → await PlayOpen(token) → OnOpen
+public async UniTask CloseAsync();   // await PlayClose(token) → SetActive(false) → OnClose (이미 꺼져 있으면 아무것도 안 함)
 protected virtual UniTask PlayOpen(CancellationToken token);    // 하위 View (PopupView) 가 트윈 · 연출을 넣는 자리, 기본은 바로 끝
 protected virtual UniTask PlayClose(CancellationToken token);
 ```
 
 - `Awake` 끝에서 꺼 둔다 — 열기 전까지 숨어 있다.
-- 연출 중에 다른 `Open` · `Close` 가 오면 이전 것은 **취소** (`OnOpen` · `OnClose` 없이 끝난다). 파괴되면 (`destroyCancellationToken`) 도 취소.
+- 연출 중에 다른 `OpenAsync` · `CloseAsync` 가 오면 이전 것은 **취소** (`OnOpen` · `OnClose` 없이 끝난다). 파괴되면 (`destroyCancellationToken`) 도 취소.
   하위 View 는 받은 `token` 을 트윈 대기에 넘겨야 취소가 먹힌다.
-- 기다릴 필요가 없으면 `view.Open().Forget();`. `ScreenManager` 는 `await` 로 순서를 맞출 수 있다 (닫힌 뒤 다음 열기 등).
+- 기다릴 필요가 없으면 `view.OpenAsync().Forget();`. `ScreenManager` 는 `await` 로 순서를 맞출 수 있다 (닫힌 뒤 다음 열기 등).
 
 ### 5.1 `ScreenManager`
 
@@ -317,17 +317,21 @@ protected virtual UniTask PlayClose(CancellationToken token);
 ```csharp
 void    Open<TVM>(Action<TVM> setup = null)      where TVM : AbstractViewModel;  // = OpenAsync(setup).Forget()
 UniTask OpenAsync<TVM>(Action<TVM> setup = null) where TVM : AbstractViewModel;
+void    Close<TVM>()      where TVM : AbstractViewModel;  // 그 VM 타입의 맨 위 인스턴스, = CloseAsync<TVM>().Forget()
+UniTask CloseAsync<TVM>() where TVM : AbstractViewModel;
 
 ScreenManager.Open<ConfirmViewModel>(vm => vm.Setup("저장할까요?", OnYes));
 ```
 
 - 여는 쪽은 **View 를 모르고 VM 타입만** 안다 (V → VM → M 한 방향, 1절). 그때마다 넣을 값 (팝업 제목 · 메시지 · 콜백) 은 `setup` 에서 VM 에 넣는다. VM 은 쓰기 가능한 `Bindable` 을 열기보다 `Setup(...)` 메서드 하나로 받는 것을 권장 — 무엇을 넣어야 열리는지가 시그니처에 드러난다.
-- 순서: `Instantiate` (→ `Awake` 가 `CreateVM` → `Initialize` → `Bind` → 끄기) → **`setup(vm)`** → `ScreenView.Open`. 열기 전에 값이 들어가므로 `PlayOpen` · `OnOpen` 도 새 값을 본다.
+- 순서: `Instantiate` (→ `Awake` 가 `CreateVM` → `Initialize` → `Bind` → 끄기) → **`setup(vm)`** → `ScreenView.OpenAsync`. 열기 전에 값이 들어가므로 `PlayOpen` · `OnOpen` 도 새 값을 본다.
 - **VM 을 돌려주지 않는다.** 닫힌 뒤 `Dispose` 된 VM 을 여는 쪽이 들고 값을 넣어도 조용히 아무 일도 안 일어나는 버그를 막는다. 밖에서 특정 인스턴스를 닫아야 하는 화면이 생기면 그때 핸들을 돌려준다 (`void` → 값 반환은 기존 호출을 깨지 않는다). 열린 동안 바뀌는 값은 여는 쪽이 아니라 VM 이 이벤트 · Model 을 구독한다.
 - `void` 와 `UniTask` 를 반환 타입만 달리 오버로딩할 수 없어 (CS0111) 이름을 나눈다 — C# 관례대로 `Async`.
 - VM 타입 하나에 프리팹 하나. 같은 VM 을 쓰는 프리팹이 둘이면 구분할 수 없다 (시작할 때 경고).
 - 여러 개 (5.3): 열 때마다 새 인스턴스 · 새 VM 이라 이전 값이 남지 않는다. 미리 만들어 재사용 (풀) 하게 되면 `setup` 이 모든 값을 다시 넣어야 한다.
-- 정할 것 `[?]`: ① 닫기 — Claude 제안 `Close<TVM>()` · `CloseAsync<TVM>()` (그 타입의 맨 위 인스턴스), 사용자 확인 전 ② `ScreenView.Open` · `Close` 도 `OpenAsync` · `CloseAsync` 로 맞출지 (지금은 `UniTask` 인데 `Async` 가 없다) ③ 매니저가 프리팹의 VM 타입과 인스턴스의 VM 을 얻는 길 — 예: 제네릭 아닌 `ScreenView` 에 VM 타입 · VM 을 내주는 멤버를 두고 `ScreenView<T>` 가 채운다.
+- 닫기는 **VM 타입의 맨 위 인스턴스** (사용자 10-19). 같은 화면이 여러 개 떠 있을 때 그중 특정 하나를 밖에서 닫는 길은 아직 없다 — 화면은 보통 자기 버튼으로 닫힌다.
+- `ScreenView` 의 열기 · 닫기도 같은 규칙으로 `OpenAsync` · `CloseAsync` (사용자 10-19, 5.0).
+- 정할 것 `[?]`: 매니저가 프리팹의 VM 타입과 인스턴스의 VM 을 얻는 길 — 예: 제네릭 아닌 `ScreenView` 에 VM 타입 · VM 을 내주는 멤버를 두고 `ScreenView<T>` 가 채운다.
 - 같은 날 거친 안 (되돌림): **DevLib `RegistrySystem` 항목 `ScreenEntry` (프리팹 + SO + `CreateVM`) + 생성된 enum 으로 열기.** enum 키는 인스펙터 · 이벤트 데이터에 담기 쉽지만, 패키지 밖에 Registry 연결 코드가 생기고 `Instantiate` 뒤 VM 넣기 · 프리팹과 VM 타입 짝 확인이 새로 필요했다. VM 타입 키는 패키지만으로 끝나고 이름 바꾸기 · 사용처 찾기가 IDE 로 된다. enum 으로 여는 것이 필요해지면 프로젝트에서 enum → `Open<TVM>()` 매핑만 얹는다. 그보다 앞의 처음 안 (VM 자체를 Registry 에 넣고 VM 이 프리팹을 든다) 은 VM → View 의존 · 항목마다 VM 하나 · 생성자 매개변수 불가 · 패키지의 DevLib 의존 때문에 뺐다.
 
 ### 5.2 `PopupView`

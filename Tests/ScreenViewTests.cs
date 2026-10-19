@@ -58,7 +58,7 @@ namespace MVVMGUI.Tests
         [Test]
         public void Open_WithoutAnimation_ShowsAndNotifies()
         {
-            _view.Open().Forget();
+            _view.OpenAsync().Forget();
 
             Assert.IsTrue(_go.activeSelf);
             Assert.AreEqual(1, _view.Opened);
@@ -69,7 +69,7 @@ namespace MVVMGUI.Tests
         {
             _view.OpenGate = new UniTaskCompletionSource();
 
-            _view.Open().Forget();
+            _view.OpenAsync().Forget();
             Assert.IsTrue(_go.activeSelf, "연출 전에 켜져야 한다");
             Assert.AreEqual(0, _view.Opened);
 
@@ -80,10 +80,10 @@ namespace MVVMGUI.Tests
         [Test]
         public void Close_HidesOnlyAfterAnimationEnds()
         {
-            _view.Open().Forget();
+            _view.OpenAsync().Forget();
             _view.CloseGate = new UniTaskCompletionSource();
 
-            _view.Close().Forget();
+            _view.CloseAsync().Forget();
             Assert.IsTrue(_go.activeSelf, "닫기 연출 동안은 켜져 있어야 한다");
 
             _view.CloseGate.TrySetResult();
@@ -95,9 +95,9 @@ namespace MVVMGUI.Tests
         public void Close_DuringOpenAnimation_CancelsOpen()
         {
             _view.OpenGate = new UniTaskCompletionSource();
-            _view.Open().Forget();
+            _view.OpenAsync().Forget();
 
-            _view.Close().Forget();
+            _view.CloseAsync().Forget();
             _view.OpenGate.TrySetResult();
 
             Assert.IsFalse(_go.activeSelf);
@@ -108,7 +108,7 @@ namespace MVVMGUI.Tests
         [Test]
         public void Close_WhenAlreadyClosed_DoesNothing()
         {
-            _view.Close().Forget();
+            _view.CloseAsync().Forget();
 
             Assert.AreEqual(0, _view.Closed);
         }
@@ -117,7 +117,7 @@ namespace MVVMGUI.Tests
         public void Destroy_DuringOpenAnimation_DoesNotNotify()
         {
             _view.OpenGate = new UniTaskCompletionSource();
-            _view.Open().Forget();
+            _view.OpenAsync().Forget();
             var view = _view;
 
             Object.DestroyImmediate(_go);
