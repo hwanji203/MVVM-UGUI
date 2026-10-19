@@ -32,4 +32,4 @@ MVVMGUI 은 특정 이벤트 · 사운드 시스템을 모른다. 프로젝트�
 | 연결점 | 패키지가 주는 것 | 프로젝트가 하는 일 |
 | --- | --- | --- |
 | 클릭 소리 | 추상 `UISoundSO` (+ 기본 `AudioSource` 구현) | 자기 사운드 시스템으로 `Play()` 를 구현한 SO 하나 (선택) |
-| 화면 열기 · 닫기 | `ScreenManager.Open<T>()` · `Close()` | 자기 이벤트 시스템에서 받아 이 메서드를 부르는 컴포넌트 하나 (선택) |
+| 화면 열기 · 닫기 | `ScreenManager.Open<TVM>(setup)` · `OpenAsync<TVM>(setup)` (키는 ViewModel 타입) · 닫기 | 자기 이벤트 시스템에서 받아 이 메서드를 부르는 컴포넌트 하나 (선택) |

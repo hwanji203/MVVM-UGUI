@@ -283,7 +283,7 @@ public partial class BattleHudView : ScreenView<BattleHudViewModel>
 - `ScreenView` 는 `Awake` 에서 `CreateViewModel` → `Bind`, `OnDestroy` 에서 ViewModel `Dispose`. (지금 코드 이름은 `AbstractView<T>` · `CreateVM` — 이름과 모양은 사용자가 정하는 중 `[?]`.)
 - 같은 Element 를 다시 묶으면 이전 연결은 끊긴다 (Element 의 `Bind`).
 - ViewModel 이 필요한 SO 는 View 가 `[SerializeField]` 로 들고 생성자로 넘긴다.
-- **2026-10-19 사용자: 위 두 줄과 예시의 `CreateViewModel` · `[SerializeField] battleChannel` 은 바뀐다 (5.1).** VM 은 View 가 만들지 않고 밖에서 받는다. VM 을 만드는 일과 그 SO 는 프로젝트의 화면 항목 (`ScreenEntry`) 이 들고 있다. VM 은 여전히 순수 C# · 생성자로 SO 를 받고, View · 프리팹을 모른다. 받는 시점 · 메서드 모양은 `[?]` (5.1).
+- 2026-10-19 사용자: VM 은 그대로 View 가 만든다 (같은 날 잠깐 정했던 "Registry 항목이 VM 을 만든다" 는 되돌림, 5.1). 여는 쪽이 넣을 값은 `ScreenManager.Open` 의 `setup` 으로 VM 에 넣는다.
 
 ## 5. 화면 열기 · 닫기 (확정)
 
@@ -308,15 +308,27 @@ protected virtual UniTask PlayClose(CancellationToken token);
 
 ### 5.1 `ScreenManager`
 
-- 씬에 두는 **일반 컴포넌트** (싱글톤 아님). 자기 씬의 화면 프리팹 목록을 `[SerializeField]` 로 들고 시작할 때 만든다.
-- **메서드만** — `Open<T>()` · `Close()`. 이벤트로 여는 것은 프로젝트가 잇는다 (연결점 2, 7.3).
+- 씬에 두는 **일반 컴포넌트** (싱글톤 아님). 자기 씬의 화면 프리팹 목록을 `[SerializeField]` 로 든다.
+- **메서드만**. 이벤트로 여는 것은 프로젝트가 잇는다 (연결점 2, 7.3).
 - 팝업은 **스택**. "이 화면이 열려 있으면 저 요청 무시" 같은 판단은 여기서 — 화면끼리는 서로 모른다.
 
-**2026-10-19 사용자 — 화면 목록은 프로젝트의 Registry, 패키지는 VM 을 받아 여는 길만 (위 첫 두 줄을 바꾼다):**
-- 화면 하나 = 프로젝트 쪽 Registry 항목 `ScreenEntry` — **프리팹 + VM 이 쓸 SO + `CreateVM`**. Project_B 는 DevLib `RegistrySystem` 에 둔다. Registry 가 만든 enum 으로 연다 (`Open(ScreenType.Settings)` 꼴은 프로젝트 코드).
-- 패키지는 Registry · DevLib 을 모른다 (AGENTS.md 4). 패키지가 여는 것은 **프리팹과 이미 만든 VM 을 받아** 띄우는 길 하나.
-- 대안으로 본 것: VM 자체를 Registry 항목으로 두고 VM 이 프리팹을 든다 — VM → View 의존이 생기고 (1절과 어긋남), Registry 는 항목마다 사본 하나라 열 때마다 새 VM · 같은 화면 여러 개 (5.3) · 닫을 때 `Dispose` 와 안 맞고, 매개변수 있는 생성자가 불리지 않아 SO 를 생성자로 못 받는다. 패키지가 DevLib 에 묶인다.
-- 정할 것 `[?]`: ① 패키지 메서드 모양 — 예 `Open(ScreenView prefab, AbstractViewModel vm)`, 열린 인스턴스를 돌려줄지, `Open<T>()` 를 남길지 ② VM 을 넣는 때 — `Instantiate` 가 `Awake` 를 먼저 부르니 지금 `Awake` 의 `Initialize` → `Bind` → 끄기를 VM 받는 메서드로 옮겨야 한다 ③ `ScreenView<T>.CreateVM` 을 지울지 (VM 없이 씬에 놓는 화면을 허용할지) ④ 프리팹 · VM 타입 짝 — 제네릭 아닌 길로 받으면 `ScreenView<T>` 안에서 형변환, 짝이 틀리면 실행 중에 터진다. 프로젝트의 `ScreenEntry<TView, TVM>` 로 컴파일 때 막을지 ⑤ 열 때마다 새 VM 인지.
+**열기 · 닫기 모양 (사용자 2026-10-19) — 키는 ViewModel 타입:**
+
+```csharp
+void    Open<TVM>(Action<TVM> setup = null)      where TVM : AbstractViewModel;  // = OpenAsync(setup).Forget()
+UniTask OpenAsync<TVM>(Action<TVM> setup = null) where TVM : AbstractViewModel;
+
+ScreenManager.Open<ConfirmViewModel>(vm => vm.Setup("저장할까요?", OnYes));
+```
+
+- 여는 쪽은 **View 를 모르고 VM 타입만** 안다 (V → VM → M 한 방향, 1절). 그때마다 넣을 값 (팝업 제목 · 메시지 · 콜백) 은 `setup` 에서 VM 에 넣는다. VM 은 쓰기 가능한 `Bindable` 을 열기보다 `Setup(...)` 메서드 하나로 받는 것을 권장 — 무엇을 넣어야 열리는지가 시그니처에 드러난다.
+- 순서: `Instantiate` (→ `Awake` 가 `CreateVM` → `Initialize` → `Bind` → 끄기) → **`setup(vm)`** → `ScreenView.Open`. 열기 전에 값이 들어가므로 `PlayOpen` · `OnOpen` 도 새 값을 본다.
+- **VM 을 돌려주지 않는다.** 닫힌 뒤 `Dispose` 된 VM 을 여는 쪽이 들고 값을 넣어도 조용히 아무 일도 안 일어나는 버그를 막는다. 밖에서 특정 인스턴스를 닫아야 하는 화면이 생기면 그때 핸들을 돌려준다 (`void` → 값 반환은 기존 호출을 깨지 않는다). 열린 동안 바뀌는 값은 여는 쪽이 아니라 VM 이 이벤트 · Model 을 구독한다.
+- `void` 와 `UniTask` 를 반환 타입만 달리 오버로딩할 수 없어 (CS0111) 이름을 나눈다 — C# 관례대로 `Async`.
+- VM 타입 하나에 프리팹 하나. 같은 VM 을 쓰는 프리팹이 둘이면 구분할 수 없다 (시작할 때 경고).
+- 여러 개 (5.3): 열 때마다 새 인스턴스 · 새 VM 이라 이전 값이 남지 않는다. 미리 만들어 재사용 (풀) 하게 되면 `setup` 이 모든 값을 다시 넣어야 한다.
+- 정할 것 `[?]`: ① 닫기 — Claude 제안 `Close<TVM>()` · `CloseAsync<TVM>()` (그 타입의 맨 위 인스턴스), 사용자 확인 전 ② `ScreenView.Open` · `Close` 도 `OpenAsync` · `CloseAsync` 로 맞출지 (지금은 `UniTask` 인데 `Async` 가 없다) ③ 매니저가 프리팹의 VM 타입과 인스턴스의 VM 을 얻는 길 — 예: 제네릭 아닌 `ScreenView` 에 VM 타입 · VM 을 내주는 멤버를 두고 `ScreenView<T>` 가 채운다.
+- 같은 날 거친 안 (되돌림): **DevLib `RegistrySystem` 항목 `ScreenEntry` (프리팹 + SO + `CreateVM`) + 생성된 enum 으로 열기.** enum 키는 인스펙터 · 이벤트 데이터에 담기 쉽지만, 패키지 밖에 Registry 연결 코드가 생기고 `Instantiate` 뒤 VM 넣기 · 프리팹과 VM 타입 짝 확인이 새로 필요했다. VM 타입 키는 패키지만으로 끝나고 이름 바꾸기 · 사용처 찾기가 IDE 로 된다. enum 으로 여는 것이 필요해지면 프로젝트에서 enum → `Open<TVM>()` 매핑만 얹는다. 그보다 앞의 처음 안 (VM 자체를 Registry 에 넣고 VM 이 프리팹을 든다) 은 VM → View 의존 · 항목마다 VM 하나 · 생성자 매개변수 불가 · 패키지의 DevLib 의존 때문에 뺐다.
 
 ### 5.2 `PopupView`
 
@@ -368,7 +380,7 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
 | 연결점 | 패키지가 주는 것 | 프로젝트가 하는 일 | 안 이으면 |
 | --- | --- | --- | --- |
 | 1. 클릭 소리 | 추상 `UISoundSO` + `AudioSourceUISoundSO` | 자기 사운드 시스템으로 `Play()` 구현한 SO 하나 | 기본 구현 |
-| 2. 화면 열기 · 닫기 | `ScreenManager.Open<T>()` · `Close()` | 자기 이벤트에서 받아 이 메서드를 부르는 컴포넌트 하나 | 직접 호출 |
+| 2. 화면 열기 · 닫기 | `ScreenManager.Open<TVM>(setup)` · `OpenAsync` · 닫기 (5.1) | 자기 이벤트에서 받아 이 메서드를 부르는 컴포넌트 하나 | 직접 호출 |
 
 ## 8. 테스트 (EditMode)
 
