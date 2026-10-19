@@ -283,6 +283,7 @@ public partial class BattleHudView : ScreenView<BattleHudViewModel>
 - `ScreenView` 는 `Awake` 에서 `CreateViewModel` → `Bind`, `OnDestroy` 에서 ViewModel `Dispose`. (지금 코드 이름은 `AbstractView<T>` · `CreateVM` — 이름과 모양은 사용자가 정하는 중 `[?]`.)
 - 같은 Element 를 다시 묶으면 이전 연결은 끊긴다 (Element 의 `Bind`).
 - ViewModel 이 필요한 SO 는 View 가 `[SerializeField]` 로 들고 생성자로 넘긴다.
+- **2026-10-19 사용자: 위 두 줄과 예시의 `CreateViewModel` · `[SerializeField] battleChannel` 은 바뀐다 (5.1).** VM 은 View 가 만들지 않고 밖에서 받는다. VM 을 만드는 일과 그 SO 는 프로젝트의 화면 항목 (`ScreenEntry`) 이 들고 있다. VM 은 여전히 순수 C# · 생성자로 SO 를 받고, View · 프리팹을 모른다. 받는 시점 · 메서드 모양은 `[?]` (5.1).
 
 ## 5. 화면 열기 · 닫기 (확정)
 
@@ -310,6 +311,12 @@ protected virtual UniTask PlayClose(CancellationToken token);
 - 씬에 두는 **일반 컴포넌트** (싱글톤 아님). 자기 씬의 화면 프리팹 목록을 `[SerializeField]` 로 들고 시작할 때 만든다.
 - **메서드만** — `Open<T>()` · `Close()`. 이벤트로 여는 것은 프로젝트가 잇는다 (연결점 2, 7.3).
 - 팝업은 **스택**. "이 화면이 열려 있으면 저 요청 무시" 같은 판단은 여기서 — 화면끼리는 서로 모른다.
+
+**2026-10-19 사용자 — 화면 목록은 프로젝트의 Registry, 패키지는 VM 을 받아 여는 길만 (위 첫 두 줄을 바꾼다):**
+- 화면 하나 = 프로젝트 쪽 Registry 항목 `ScreenEntry` — **프리팹 + VM 이 쓸 SO + `CreateVM`**. Project_B 는 DevLib `RegistrySystem` 에 둔다. Registry 가 만든 enum 으로 연다 (`Open(ScreenType.Settings)` 꼴은 프로젝트 코드).
+- 패키지는 Registry · DevLib 을 모른다 (AGENTS.md 4). 패키지가 여는 것은 **프리팹과 이미 만든 VM 을 받아** 띄우는 길 하나.
+- 대안으로 본 것: VM 자체를 Registry 항목으로 두고 VM 이 프리팹을 든다 — VM → View 의존이 생기고 (1절과 어긋남), Registry 는 항목마다 사본 하나라 열 때마다 새 VM · 같은 화면 여러 개 (5.3) · 닫을 때 `Dispose` 와 안 맞고, 매개변수 있는 생성자가 불리지 않아 SO 를 생성자로 못 받는다. 패키지가 DevLib 에 묶인다.
+- 정할 것 `[?]`: ① 패키지 메서드 모양 — 예 `Open(ScreenView prefab, AbstractViewModel vm)`, 열린 인스턴스를 돌려줄지, `Open<T>()` 를 남길지 ② VM 을 넣는 때 — `Instantiate` 가 `Awake` 를 먼저 부르니 지금 `Awake` 의 `Initialize` → `Bind` → 끄기를 VM 받는 메서드로 옮겨야 한다 ③ `ScreenView<T>.CreateVM` 을 지울지 (VM 없이 씬에 놓는 화면을 허용할지) ④ 프리팹 · VM 타입 짝 — 제네릭 아닌 길로 받으면 `ScreenView<T>` 안에서 형변환, 짝이 틀리면 실행 중에 터진다. 프로젝트의 `ScreenEntry<TView, TVM>` 로 컴파일 때 막을지 ⑤ 열 때마다 새 VM 인지.
 
 ### 5.2 `PopupView`
 
