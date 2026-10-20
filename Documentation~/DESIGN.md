@@ -131,6 +131,7 @@ public class Command
 ```
 
 인자 없는 입력 (버튼). 값이 있는 입력은 양방향 `Bindable`.
+**`Command<T>` (사용자 10-20)** — 같은 모양에 `Execute(T argument)`. 실행할 때 인자가 필요한 입력 (끌어다 놓은 곳 번호 — `DragElement`). Element 쪽 바탕은 `CommandElement<T>`.
 
 ### 2.4 `BindableList<T>`
 
@@ -163,6 +164,18 @@ public abstract class ViewModel : IDisposable
 - 그래서 **Element 의 `Bind` 는 `void`**. 끊을 일이 있으면 `Unbind()`, 다시 묶으면 `Bind` 가 이전 연결을 끊는다.
 - `Bindable.Subscribe` 는 `IDisposable` 을 돌려준다 (Element 내부 · `Combine` · `Own` 이 쓴다).
 - **`Dispose` 는 View 가 파괴될 때 한 번** (씬이 바뀔 때 · 여러 개 뜨는 팝업을 닫을 때). **닫힌 (비활성) 화면은 Dispose 하지 않는다** — 계속 이벤트를 받아 값이 최신, 다시 열면 바로 맞다.
+
+### 2.7 `Signal<T>` — 일회성 알림 (사용자 10-20)
+
+```csharp
+public interface IReadOnlySignal<T> { IDisposable Bind(Action<T> onFired); }
+public class Signal<T> : IReadOnlySignal<T> { public void Fire(T value); … }
+```
+
+- `Bindable` 은 **상태** (같은 값 무시 · 구독하는 순간 현재 값을 부름). 토스트 · 데미지 숫자 같은 **사건**에 쓰면 같은 값 두 번째가 사라지고, 다시 Bind 할 때 지난 사건이 또 뜬다.
+- `Signal` 은 값을 저장하지 않는다 — `Fire` 마다 알리고, `Bind` 할 때 부르지 않는다. 구독 전에 `Fire` 된 것은 사라진다 (의도).
+- VM 의 C# `event` 대신 쓰는 이유: Element 는 `Bindable` · `Command` · `Signal` 만 알고, `Bind` 가 `IDisposable` 을 돌려줘 Element 의 연결 바구니에 그대로 들어간다.
+- 받는 Element 의 바탕은 `SignalElement<T>` — **꺼져 있을 때 온 알림은 버린다** (닫혀 숨은 화면에 토스트 · 데미지 숫자가 쌓이지 않게).
 
 ## 3. Element
 
@@ -200,25 +213,66 @@ protected override void Apply(float v) => slider.SetValueWithoutNotify(v);   // 
 - 조작하면 알림이 나가 같은 값을 쓰는 다른 곳이 따라온다. 되먹임은 ① `SetValueWithoutNotify` ② Bindable 같은 값 무시 두 겹으로 끊긴다.
 - 범위 제한 · 반올림은 **ViewModel 이 값을 넣을 때** (위젯이 고쳐 받으면 화면과 Bindable 이 어긋난다).
 
-### 3.3 목록
+### 3.3 목록 (사용자 10-20 — 후보 59개에서 고름, 구현 Claude)
 
-| Element | 묶는 값 | 비고 |
-| --- | --- | --- |
-| `Element` (추상) | — | 값 없이 생성 속성으로 꺼내기만 하는 것도 이것 (특수 연출용) |
-| `LabelElement` (TMP) | `string` | 원래 글에 `{0}` 이 있으면 포맷으로. `[세부]` `int` 편의 오버로드 |
-| `GaugeElement` (Image fill) | `float` 0~1 | 트윈 |
-| `CooldownElement` | `float` 0~1 | `[세부]` |
-| `ButtonElement` | `Command` | `Active` false 면 잠김. 클릭 소리 (3.5) |
-| `SliderElement` | `Bindable<float>` 양방향 | |
-| `ToggleElement` | `Bindable<bool>` 양방향 | |
-| `SwitchElement` | `int` | 자식 중 하나만 켠다 |
-| `VisibleElement` | `bool` | 켜고 끄기 (+ 페이드) `[세부]` |
-| `ListElement` | `BindableList<T>` | 항목 프리팹 반복, 항목마다 `ItemView<TItemVM>` |
+바탕 (`Elements/Core`): `Element` · `VisualElement<T>` (한 방향) · `FormElement<T>` (양방향, `Write`) · `CommandElement` · `CommandElement<T>` · `SignalElement<T>` · **`TweenValueElement<T>`** (3.4) · `ReadOnlyListElement<T>` · `ListElement<T>` · `ITransitionElement` (창 · 배경의 `PlayOpen` · `PlayClose`).
+값 없이 생성 속성으로 꺼내기만 하는 것 (특수 연출용) 은 `Element` 를 그대로 붙인다.
+
+| 갈래 | Element | 묶는 값 | 하는 일 |
+| --- | --- | --- | --- |
+| 보여주기 | `TextViewElement` | `string` | TMP. 원래 글에 `{0}` 이 있으면 포맷으로 |
+| | `NumberTextElement` | `float` (+ `int` 오버로드) | `{0:N0} G` 같은 형식 |
+| | `CountUpTextElement` | `float` (+ `int`) | 숫자가 굴러가며 따라감 (트윈) |
+| | `TimerTextElement` | `float` 초 | `mm:ss` · `h:mm:ss` · 초 · 0.1초, 남은 시간은 올림, 경고 색 |
+| | `TypewriterTextElement` | `string` | 한 글자씩. `Skip()` |
+| | `GaugeElement` | `float` 0~1 | Image fill · 가로 / 세로 크기 (트윈) |
+| | `DelayedGaugeElement` | `float` 0~1 | 잔상 바가 늦게 따라옴 (트윈) |
+| | `CooldownElement` | `float` 0~1 | 덮개 fill, 0 이면 숨김. 쿨다운 버튼 = 버튼 + 자식에 이것 |
+| | `ImageElement` | `Sprite` | 그림 교체, null 이면 숨김 |
+| | `ColorElement` · `GradientColorElement` | `Color` · `float` | Graphic 색 (트윈) |
+| | `AlphaElement` | `float` | CanvasGroup 투명도 (트윈) |
+| | `VisibleElement` | `bool` | Active (SetActive) · Fade · Scale. Fade · Scale 은 오브젝트를 끄지 않는다 |
+| | `InteractableElement` | `bool` | CanvasGroup 통째로 잠금 + 흐리게 |
+| | `SwitchElement` | `int` | 하나만 켬, 범위 밖이면 전부 끔 |
+| | `CountIconsElement` | `int` | N 개 중 k 개 (하트 · 별점 · 칸 게이지). 꺼진 칸은 Hide · Tint · Swap |
+| | `BadgeElement` | `int` | 0 이면 숨김, `99+` |
+| | `DrawerElement` | `bool` | 한 방향으로 미끄러져 들어오고 나감 (트윈) |
+| | `LoadingSpinnerElement` | `bool` | 보이고 돈다 (칸 단위 선택) |
+| | `WorldFollowElement` | `Vector3` | 월드 좌표를 화면에서 따라감 (매 프레임) |
+| 입력 | `SliderElement` · `IntSliderElement` | `Bindable<float>` · `Bindable<int>` | |
+| | `ToggleElement` | `Bindable<bool>` | 클릭 소리 |
+| | `ToggleGroupElement` | `Bindable<int>` | 하나만 고름, 고른 것을 다시 눌러도 안 꺼짐 |
+| | `TabElement` | `Bindable<int>` | 토글 그룹 + 페이지 |
+| | `DropdownElement` | `Bindable<int>` (+ 항목 목록) | 3.6 |
+| | `InputFieldElement` | `Bindable<string>` | 칠 때마다 / 입력을 마칠 때 |
+| | `OptionStepperElement` | `Bindable<int>` (+ 항목 목록) | `◀ 보통 ▶`, 끝에서 처음으로 (선택) |
+| | `HoverElement` | `Bindable<bool>` | 포인터가 올라와 있나 (쓰기만) |
+| 명령 | `ButtonElement` | `Command` | 잠김 = `Active` false. 클릭 소리 |
+| | `LockButtonElement` | `Command` | 잠기면 자물쇠 · "잠김" 글, 잠긴 채 누르면 막힌 소리 |
+| | `HoldButtonElement` | `Command` | 길게 눌러야 실행, 누르는 동안 fill |
+| | `ClickAreaElement` | `Command` | 아무 Graphic 이나 누르면 |
+| | `DragElement` | `Command<int>` | 놓은 `DropZone` 번호 (없으면 -1) 로 실행, 늘 제자리로 돌아감 |
+| 목록 | `ItemListElement` | `IReadOnlyBindableList<TItem>` | 3.7 |
+| 팝업 · 알림 | `WindowElement` | — (`ITransitionElement`) | 크기 (+ 투명도) 열기 · 닫기, 닫다가 다시 열면 이어서 |
+| | `BackgroundDimElement` | `Command` (`ITransitionElement`) | 페이드 + 누르면 Command (닫기) |
+| | `ToastElement` | `Signal<string>` | 차례로 잠깐 떴다 사라짐 |
+| | `FloatingTextElement` | `Signal<string>` | 떠오르며 사라지는 글 (풀링) |
+| | `PunchElement` | 어떤 `Bindable` · `Signal` 이든 | 바뀌면 통통 (첫 값은 안 튐) |
+| | `TooltipElement` | `string` | delay 초 머무르면 띄움 — 터치는 길게 누르면 (누를 때 들어오고 뗄 때 나가서 같은 규칙) |
+
+**AssistComponent (`Runtime/AssistComponent`, namespace `MVVMGUI.AssistComponent`)** — 값을 묶지 않아 Element 가 아닌 것 (사용자 10-20): `ButtonFeedback` (올림 · 누름 때 크기 · 투명도) · `DropZone` (놓을 곳 번호) · `SafeArea` (모바일 노치).
+
+뺀 것 (사용자 10-20): Localized 글 · 키 다시 배정 · 단축키 (의존성 — 프로젝트 쪽), SpriteSwitch · Swap · Rotation · AnchoredPosition · ProgressText (VM `Combine` 으로) · ScrollPosition · SelectableList (`Command<int>` + 항목 VM 의 `IsSelected` 로) · RecycleList · PageIndicator · CooldownButton (버튼 + Cooldown 조합). 칸 게이지 (SegmentGauge) 는 `CountIconsElement` 와 같은 일이라 합쳤다 (Claude).
 
 ### 3.4 꺼진 오브젝트 · 트윈 중 (확정)
 
 - 꺼진 오브젝트에도 구독은 살아 있다. 트윈이 있는 Element 는 **꺼져 있으면 트윈 없이 즉시 적용**.
 - 트윈 중 새 값 → 이전 트윈을 `Kill`, 지금 위치에서 새 목표로.
+- **이 규칙은 `TweenValueElement<T>` 한 곳에 있다 (사용자 10-20, 구현 Claude).** 하위는 `ApplyImmediate(value)` 와 `AppendTween(seq, value)` 만 쓴다.
+  바로 맞추는 때: 첫 값 (Bind 직후 — 화면을 열 때마다 0 에서 차오르지 않게) · 꺼져 있음 · 플레이 중이 아님 · `duration` 0. 트윈 중 꺼지면 (`OnDisable`) 마지막 값으로 바로 맞춘다 — DOTween 은 꺼진 오브젝트의 트윈도 돌린다. `Kill` 이라 `Complete` 처럼 이전 목표로 튀지 않는다.
+  `Sequence` 를 받는 이유: 잔상 게이지처럼 트윈이 둘인 Element 가 `Append` · `Insert` 로 그대로 된다. 단점: 단일 상속이라 트윈 있는 양방향 Element 는 이 바탕을 못 쓴다 (지금은 없음). 값이 아니라 열기 · 닫기로 움직이는 창 · 배경은 이것이 아니라 `ITransitionElement`.
+- **Element 는 `Awake` 를 믿지 않는다** — 꺼진 채 만들어진 Element 는 `Awake` 보다 `Bind` (View 의 `Awake`) 가 먼저 온다. 원래 글 · 원래 색 · 원래 위치는 처음 값을 받을 때 읽는다. 리스너 연결만 `Awake` (눌리는 건 켜진 뒤라서).
+- DOTween 은 **본체 API 만** (`DOTween.To` · `DOScale` · `DOPunchScale` · `DOLocalMoveY`). Modules 함수 (`DOFade` · `DOFillAmount`) 는 Project_B 에선 asmdef 없이 Assembly-CSharp 안, Apes 에선 따로 asmdef 라 패키지가 참조할 길이 없다 (Claude 10-20). 시작할 때 `SetLink(gameObject)`, 기본 `SetUpdate(true)`.
 
 ### 3.5 클릭 소리 (확정)
 
@@ -229,7 +283,28 @@ public class AudioSourceUISoundSO : UISoundSO { … }      // 패키지 기본 �
 
 - `ButtonElement` 는 `[SerializeField] UISoundSO clickSound` 를 들고 눌리면 `Play()` 만. 화면 코드에 소리가 없다.
 - 프로젝트가 자기 사운드 시스템으로 구현한 SO 를 만들어 쓰면 된다 (연결점 1, 7.3).
-- `[세부]` `Reset()` 이 기본 SO 를 채우는 방법, 잠긴 버튼 소리, Toggle · Slider 소리.
+- `[세부]` `Reset()` 이 기본 SO 를 채우는 방법. 정한 것 (Claude 10-20): 버튼 · 토글 · 토글 그룹 · 스테퍼 · 클릭 영역 · 배경 = 클릭 소리, 길게 누르기 = 다 찼을 때, 잠긴 버튼 = `LockButtonElement` 의 막힌 소리, 슬라이더 = 없음. `AudioSourceUISoundSO` 는 처음 소리를 낼 때 씬 전환에도 남는 2D AudioSource 하나를 만든다.
+
+### 3.6 원본이 둘인 Element (사용자 10-20)
+
+Element 의 연결 바구니는 하나라 `Bind` 를 두 번 부르면 두 번째가 첫 번째를 끊는다. 그래서 원본 둘은 **한 번에** 받는다 — `DropdownElement.Bind(options, selected)` · `OptionStepperElement.Bind(options, selected)`.
+항목이 인스펙터에 적혀 있으면 `Bind(selected)` 하나. 둘로 나눌 수 있는 것 (쿨다운 버튼) 은 Element 두 개를 조합한다.
+
+### 3.7 목록 — `ItemListElement` + `ItemView<TItem>` (사용자 10-20, 구현 Claude)
+
+```csharp
+public partial class CardItemView : ItemView<CardViewModel>
+{
+    protected override void Bind(CardViewModel card) { NameText.Bind(card.Name); PlayButton.Bind(card.Play); }
+}
+HandList.Bind(vm.Hand);   // ItemListElement — 제네릭이 아니고 Bind<TItem> 가 제네릭
+```
+
+- 제네릭 MonoBehaviour 는 컴포넌트로 붙일 수 없어서 **목록 Element 하나** (`ItemListElement`) 에 제네릭 `Bind<TItem>` 를 두고, 항목 프리팹의 `ItemView<TItem>` 타입은 Bind 할 때 확인한다 (다르면 오류 로그). 안 고른 것: 목록마다 한 줄 하위 클래스 (`CardListElement : ListElement<CardVM>`) — 타입은 컴파일에 잡히지만 목록마다 파일이 는다.
+- 항목 View 는 VM 을 만들지 않고 받는다 — 항목은 목록을 가진 VM 의 것이라 **Dispose 하지 않는다**. 항목은 VM 이 아닌 값 (`int` · struct) 이어도 된다.
+- 만든 항목 View 는 지우지 않고 꺼 두었다가 다시 쓴다 (화면 재사용 5.3 과 같은 이유). 뺄 때 안의 Element 연결을 끊는다. 목록이 바뀌면 보이는 항목을 전부 다시 Bind 한다 — 수백 개면 다시 본다.
+- 생성기는 `ItemView` 도 `ScreenView` 처럼 다룬다 (partial 속성, 화면 프리팹 안에 놓인 항목 템플릿은 경계).
+- 기존 `ReadOnlyListElement<T>` · `ListElement<T>` 는 ItemView 없이 직접 그리는 목록용으로 남긴다.
 
 ## 4. View — 생성된 속성 + 손 연결
 
@@ -308,7 +383,9 @@ protected virtual UniTask PlayClose(CancellationToken token);
 
 ### 5.1 `ScreenManager`
 
-- 씬에 두는 **일반 컴포넌트** (싱글톤 아님). 자기 씬의 화면 프리팹 목록을 `[SerializeField]` 로 든다.
+- **일반 컴포넌트** (싱글톤 아님). 화면 프리팹 목록을 `[SerializeField]` 로 든다.
+- **2026-10-20 사용자 (위의 "씬에 두는 · 자기 씬의 목록" 을 바꾼다):** 매니저는 `DontDestroyOnLoad` 로 씬을 넘어 살고, **루트 Canvas 를 매니저가 든다** (매니저가 Canvas 오브젝트에 붙어 `Awake` 에서 `GetComponent<Canvas>()`). 그래서 화면 인스턴스도 씬을 넘어 다시 쓰인다 — 씬마다 `Instantiate` · `Awake` 를 다시 안 한다. 목록은 모든 씬의 화면을 담는다.
+  지킬 것: 매니저 오브젝트는 씬의 최상위 (`DontDestroyOnLoad` 는 루트에만), 그 매니저가 있는 씬을 다시 불러도 둘이 되지 않게, Canvas 는 카메라가 필요 없는 Screen Space - Overlay (Camera 모드면 씬마다 카메라가 바뀐다), `EventSystem` 도 씬을 넘어 하나가 있어야 클릭을 받는다. 단점: 연 화면은 앱이 끝날 때까지 메모리에 남고 VM 도 계속 이벤트를 받는다 — 씬마다 정리할 게 생기면 VM 쪽에서.
 - **메서드만**. 이벤트로 여는 것은 프로젝트가 잇는다 (연결점 2, 7.3).
 - 열린 순서를 안다 (팝업과 다른 화면을 나누지 않는 목록 하나, 사용자 10-19). **게임 판단은 두지 않는다** — "게임이 끝나면 설정창을 못 연다" 같은 막기는 요청하는 쪽이 게임 상태로 한다 (버튼 VM 의 `Command.SetEnabled` · 프로젝트의 연결 컴포넌트). 패키지는 게임 화면을 모르고, 화면끼리 서로 알면 참조가 엉킨다 (사용자 10-19 지적).
 - HUD 처럼 계속 떠 있는 화면은 씬에 두고 매니저 밖에서 다룬다.
@@ -337,7 +414,10 @@ ScreenManager.Open<ConfirmViewModel>(vm => vm.Setup("저장할까요?", OnYes));
   - 열림 / 쉼은 `activeSelf` 로 본다 — 그래서 매니저에 닫힘 알림 (`OnClose`) 이 필요 없다. 닫기 연출 중인 화면은 켜져 있으니 "열림" 으로 보고 새 열기에 고르지 않는다.
 - 닫기는 **VM 타입의 맨 위 인스턴스** (사용자 10-19). 같은 화면이 여러 개 떠 있을 때 그중 특정 하나를 밖에서 닫는 길은 아직 없다 — 화면은 보통 자기 버튼으로 닫힌다.
 - `ScreenView` 의 열기 · 닫기도 같은 규칙으로 `OpenAsync` · `CloseAsync` (사용자 10-19, 5.0).
-- 매니저가 프리팹의 VM 타입을 얻는 길: 제네릭 아닌 `ScreenView` 의 `abstract Type GetVMType()` (사용자 10-19, 작성 중). 인스턴스의 VM 을 `setup` 에 넘기는 길 · 매니저의 자료구조는 사용자가 작성 중 `[?]`.
+- 매니저가 프리팹의 VM 타입을 얻는 길: 처음 열 때 프리팹 목록에서 `prefab is ScreenView<TVM>` 인 것을 찾는다 (사용자 10-20 — 10-19 의 `GetVMType()` 안 대신). `setup` 에는 그 인스턴스의 `vm` (`internal`) 을 넘긴다.
+- **자료구조 (사용자 10-20):** VM 타입 → (프리팹 · 인스턴스 목록). **목록은 보관만** (순서 없음), **열린 순서는 계층 (형제 순서)** 이 든다 — 열 때 `SetAsLastSibling`, 닫기는 그 타입에서 켜진 것 중 `GetSiblingIndex()` 가 가장 큰 것. 닫기 연출 중인 화면 (`ScreenView.IsClosing`, 사용자 10-20 — 매니저의 목록 `_closingViewBuffer` 대신) 은 다음 닫기에서 고르지 않는다. `IsClosing` 은 `CloseAsync` 가 켜고, 끝나서 끄거나 새 열기 · 닫기의 `BeginTransition` 이 푼다 — 화면이 자기 버튼으로 닫는 중이어도 매니저가 안다.
+  안 고른 것: 목록에서 `Remove` → `Add` 로 순서를 맞추기 — 순서가 목록과 계층 두 곳이라 매니저 밖에서 형제 순서를 바꾸면 어긋나고, 타입별 목록으론 타입 상관없는 "맨 위 닫기" 를 못 한다. 단점: 모든 화면이 같은 부모 (`rootCanvas`) 바로 아래여야 한다 — 부모가 갈라지면 (레이어 Canvas 를 나누면) 열린 화면 전체 스택이 따로 필요하다.- **Canvas (사용자 10-20):** 씬에 루트 Canvas 하나 (`CanvasScaler` · 렌더 모드), 각 화면 프리팹 루트에 `Canvas` (중첩, Override Sorting 끔) — 한 화면의 변경이 다른 화면의 다시 그리기를 부르지 않게. 클릭을 받는 화면은 루트에 `GraphicRaycaster` 도 (Graphic 은 가장 가까운 Canvas 에 등록돼 루트의 Raycaster 가 못 본다). 숨기기는 **`SetActive`** 그대로 (사용자 10-20) — Element 가 `OnEnable` 에서 스크롤 같은 상태를 되돌릴 수 있고, 숨은 동안 스크립트가 멈춘다. `Canvas.enabled` 는 켜고 끄기가 싸지만 숨은 동안 `Update` 가 돌고 열림 판단 (`activeSelf`) 을 다 바꿔야 해서 안 씀 — 초당 여러 번 켜고 끄는 화면 (툴팁 등) 이 생기면 그때 다시 본다.
+- 같은 VM 타입의 프리팹이 둘 이상이면 매니저 `Awake` 에서 경고 (먼저 나온 것만 쓰인다, Claude 10-20).
 - 같은 날 거친 안 (되돌림): **DevLib `RegistrySystem` 항목 `ScreenEntry` (프리팹 + SO + `CreateVM`) + 생성된 enum 으로 열기.** enum 키는 인스펙터 · 이벤트 데이터에 담기 쉽지만, 패키지 밖에 Registry 연결 코드가 생기고 `Instantiate` 뒤 VM 넣기 · 프리팹과 VM 타입 짝 확인이 새로 필요했다. VM 타입 키는 패키지만으로 끝나고 이름 바꾸기 · 사용처 찾기가 IDE 로 된다. enum 으로 여는 것이 필요해지면 프로젝트에서 enum → `Open<TVM>()` 매핑만 얹는다. 그보다 앞의 처음 안 (VM 자체를 Registry 에 넣고 VM 이 프리팹을 든다) 은 VM → View 의존 · 항목마다 VM 하나 · 생성자 매개변수 불가 · 패키지의 DevLib 의존 때문에 뺐다.
 
 ### 5.2 `PopupView`
@@ -369,7 +449,7 @@ public partial class SettingView : PopupView<SettingViewModel>
 MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.mvvmgui)
  ├ package.json · README.md · AGENTS.md
  ├ Documentation~/  DESIGN.md (이 문서) · ROADMAP.md · HANDOFF-APES.md   (~ 로 끝나는 폴더는 Unity 가 무시)
- ├ Runtime/  (asmdef MVVMGUI)          Binding · ViewModel · Elements · ScreenView · PopupView · ScreenManager · UISoundSO
+ ├ Runtime/  (asmdef MVVMGUI)          Binding · Core (ViewModel · ScreenView · ItemView · ScreenManager) · Elements · AssistComponent · Sound (UISoundSO) · Templates (PopupView)
  ├ Editor/   (asmdef MVVMGUI.Editor)   Element 속성 생성기
  └ Tests/    (asmdef MVVMGUI.Tests)    EditMode 테스트
 ```
@@ -383,7 +463,7 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
 | 프로젝트 | 참조 |
 | --- | --- |
 | Project_B (사용자 혼자, Unity 6000.6) | `file:../../../MVVMGUI` (로컬) + `testables` |
-| Apes (팀, Unity 6000.3) | git URL + 태그 (사용자 10-18). Element 와 화면은 Apes 에서 함께 만들고, 틀 (ScreenView · 생성기 · ScreenManager · PopupView) 은 이 저장소에서 — 사용자 PC 에서는 `Packages/` 에 이 저장소 clone 을 내장 패키지로 두고 고친다 (ROADMAP "Apes 에서 고치는 흐름") |
+| Apes (팀, Unity 6000.3) | git URL + 태그 (사용자 10-18). 화면은 Apes 에서 만들고, 틀과 Element 는 이 저장소에서 (Element 는 10-20 에 바꿈) — 사용자 PC 에서는 `Packages/` 에 이 저장소 clone 을 내장 패키지로 두고 고친다 (ROADMAP "Apes 에서 고치는 흐름") |
 
 ### 7.3 프로젝트와 잇는 곳 (둘 다 선택)
 
@@ -398,6 +478,8 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
 - `Command`: `Active` false 면 무시. `BindableList`: 알림 순서 · 인덱스.
 - `ViewModel`: `Own` 한 것이 `Dispose` 에서 풀린다.
 - 생성기: 같은 이름 · 중첩 View 경계 · 생성 코드의 타입 = 실제 컴포넌트 · 내용이 같으면 다시 쓰지 않음.
+- `Signal`: 같은 값도 매번 · Bind 때 안 부름 · 해제. Element (`ElementsTests`): 값 반영 · 양방향 쓰기와 되먹임 없음 · 다시 묶으면 이전 원본 끊김 · 원본 둘 · 목록 재사용 · 창 · 배경 · 꺼진 Signal 무시.
+  트윈 경로는 플레이 중에만 돌아 EditMode 테스트에선 늘 "바로" 경로다 — 트윈은 플레이 모드에서 확인 (ROADMAP UI2).
 
 
 ## 현재 작업 담당 (2026-10-18)
