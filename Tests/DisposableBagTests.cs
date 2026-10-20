@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework;
 
-namespace MVVMGUI.Tests
+namespace MVVM.UGUI.Tests
 {
     public class DisposableBagTests
     {

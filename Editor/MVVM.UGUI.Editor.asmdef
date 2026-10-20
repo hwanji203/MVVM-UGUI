@@ -1,8 +1,8 @@
 {
-    "name": "MVVMGUI.Editor",
-    "rootNamespace": "MVVMGUI.Editor",
+    "name": "MVVM.UGUI.Editor",
+    "rootNamespace": "MVVM.UGUI.Editor",
     "references": [
-        "MVVMGUI"
+        "MVVM.UGUI"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,6 +1,6 @@
 using System;
 
-namespace MVVMGUI.Binding
+namespace MVVM.UGUI.Binding
 {
     /// <summary>값을 들지 않는 일회성 알림의 읽기 쪽. Element 는 이것만 받는다.</summary>
     public interface IReadOnlySignal<T>

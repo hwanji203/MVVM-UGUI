@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using MVVMGUI.Binding;
+using MVVM.UGUI.Binding;
 
-namespace MVVMGUI.Elements.Core
+namespace MVVM.UGUI.Elements.Core
 {
     public abstract class ReadOnlyListElement<T> : Element
     {

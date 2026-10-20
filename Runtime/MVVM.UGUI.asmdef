@@ -1,6 +1,6 @@
 {
-    "name": "MVVMGUI",
-    "rootNamespace": "MVVMGUI",
+    "name": "MVVM.UGUI",
+    "rootNamespace": "MVVM.UGUI",
     "references": [
         "Unity.TextMeshPro",
         "UniTask",

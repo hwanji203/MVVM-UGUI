@@ -1,7 +1,7 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>번호에 맞는 오브젝트 하나만 켠다 (상태별 아이콘 · 페이지). 범위 밖이면 전부 끈다.</summary>
     public class SwitchElement : VisualElement<int>

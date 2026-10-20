@@ -4,7 +4,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace MVVMGUI.Core
+namespace MVVM.UGUI.Core
 {
     public class ScreenManager : MonoBehaviour
     {

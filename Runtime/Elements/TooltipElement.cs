@@ -1,9 +1,9 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 포인터가 delay 초 머무르면 툴팁을 띄운다 ← Bindable&lt;string&gt; (빈 글이면 띄우지 않음). Raycast Target 인 Graphic 이 필요하다.

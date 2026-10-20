@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace MVVMGUI.Sound
+namespace MVVM.UGUI.Sound
 {
     /// <summary>패키지 기본 구현 — AudioClip 하나를 공용 2D AudioSource 로 PlayOneShot.</summary>
-    [CreateAssetMenu(menuName = "MVVMGUI/UI Sound (AudioSource)", fileName = "UISound")]
+    [CreateAssetMenu(menuName = "MVVM UGUI/UI Sound (AudioSource)", fileName = "UISound")]
     public class AudioSourceUISoundSO : UISoundSO
     {
         [SerializeField] private AudioClip clip;
@@ -25,7 +25,7 @@ namespace MVVMGUI.Sound
             if (_shared != null)
                 return _shared;
 
-            var go = new GameObject("[MVVMGUI UISound]");
+            var go = new GameObject("[MVVM UGUI Sound]");
             DontDestroyOnLoad(go);
             _shared = go.AddComponent<AudioSource>();
             _shared.playOnAwake = false;

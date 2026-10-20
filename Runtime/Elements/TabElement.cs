@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 탭 버튼 (토글) + 페이지. 고른 번호의 페이지만 켠다 ↔ Bindable&lt;int&gt;.

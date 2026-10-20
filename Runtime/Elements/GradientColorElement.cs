@@ -1,9 +1,9 @@
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>0~1 값으로 Gradient 에서 색을 골라 칠한다 (HP 가 낮으면 빨강).</summary>
     [RequireComponent(typeof(Graphic))]

@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>초를 시계 글로 (mm:ss 등). 일정 초 아래로 내려가면 색을 바꾼다.</summary>
     [RequireComponent(typeof(TMP_Text))]

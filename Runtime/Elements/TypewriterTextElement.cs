@@ -1,9 +1,9 @@
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 새 글을 한 글자씩 보여준다 (대사 · 튜토리얼). 꺼져 있거나 플레이 중이 아니면 바로 전부.

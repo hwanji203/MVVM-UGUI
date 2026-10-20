@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MVVMGUI.AssistComponent
+namespace MVVM.UGUI.AssistComponent
 {
     /// <summary>
     /// 휴대폰의 노치 · 둥근 모서리 아래로 UI 가 들어가지 않게 이 RectTransform 을 Screen.safeArea 에 맞춘다 (모바일용).

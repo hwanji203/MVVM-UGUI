@@ -1,7 +1,7 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>true 인 동안 보이고 돈다 (불러오는 중). steps 가 0 보다 크면 칸 단위로 끊어 돈다 (점 8개 스피너 그림).</summary>
     public class LoadingSpinnerElement : VisualElement<bool>

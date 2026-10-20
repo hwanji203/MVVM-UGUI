@@ -1,6 +1,6 @@
-using MVVMGUI.Binding;
+using MVVM.UGUI.Binding;
 
-namespace MVVMGUI.Elements.Core
+namespace MVVM.UGUI.Elements.Core
 {
     /// <summary>
     /// 일회성 알림 (<see cref="Signal{T}"/>) 을 받는 Element. 꺼져 있을 때 온 알림은 버린다 —

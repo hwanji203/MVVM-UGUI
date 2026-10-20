@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 떠오르며 사라지는 글 ← Signal&lt;string&gt; (데미지 숫자 "-10" · "CRIT!"). 같은 값이 연달아 와도 매번 뜬다.

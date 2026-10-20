@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using MVVMGUI.Binding;
-using MVVMGUI.Elements.Core;
-using MVVMGUI.Sound;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Elements.Core;
+using MVVM.UGUI.Sound;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// "◀ 보통 ▶" 콘솔식 선택 ↔ 고른 번호 Bindable&lt;int&gt; (언어 · 해상도 · 화면 모드).

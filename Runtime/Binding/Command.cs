@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MVVMGUI.Binding
+namespace MVVM.UGUI.Binding
 {
     public class Command
     {

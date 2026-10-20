@@ -1,9 +1,9 @@
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>0~1 값을 게이지로. Image 의 fillAmount 또는 RectTransform 크기로 그린다.</summary>
     public class GaugeElement : TweenValueElement<float>

@@ -1,9 +1,9 @@
-using MVVMGUI.Binding;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>숫자를 형식에 맞춰 글로 (예: "{0:N0} G" → "1,200 G"). int 도 묶을 수 있다.</summary>
     [RequireComponent(typeof(TMP_Text))]

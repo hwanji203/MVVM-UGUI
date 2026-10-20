@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using MVVMGUI.Binding;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Elements.Core;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace MVVMGUI.Tests
+namespace MVVM.UGUI.Tests
 {
     [ExecuteAlways]
     public class TestValueElement : VisualElement<int>

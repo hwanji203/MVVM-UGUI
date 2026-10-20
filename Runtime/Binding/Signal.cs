@@ -1,6 +1,6 @@
 using System;
 
-namespace MVVMGUI.Binding
+namespace MVVM.UGUI.Binding
 {
     /// <summary>
     /// "방금 이런 일이 있었다" 를 알리는 통로 (토스트 · 데미지 숫자 · 한 번 하는 연출).

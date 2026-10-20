@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 남은 쿨다운 0~1 을 덮개 (Image Filled, 보통 Radial 360) 로. 트윈 없음 — ViewModel 이 매 프레임 값을 넣는다.

@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>글 입력 ↔ Bindable&lt;string&gt; (이름 · 검색). 칠 때마다 또는 입력을 마칠 때 ViewModel 에 넣는다.</summary>
     [RequireComponent(typeof(TMP_InputField))]

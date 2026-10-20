@@ -1,9 +1,9 @@
-using MVVMGUI.AssistComponent;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.AssistComponent;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 끌어다 놓기 (카드 끌기). 놓으면 그 아래 <see cref="DropZone"/> 의 번호로 Command&lt;int&gt; 를 실행한다 — 놓은 곳이 없으면 -1.

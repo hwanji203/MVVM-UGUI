@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using MVVMGUI.Core;
-using MVVMGUI.Editor;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Core;
+using MVVM.UGUI.Editor;
+using MVVM.UGUI.Elements.Core;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace MVVMGUI.Tests
+namespace MVVM.UGUI.Tests
 {
     // 생성된 partial 이 넣는 배열을 손으로 둔 View — TryFill 확인용
     public class FilledTestView : ScreenView<TestViewModel>
@@ -116,11 +116,11 @@ namespace MVVMGUI.Tests
 
             string code = ElementCodeWriter.Write(typeof(TestView), new Element[] { hp, pause }, new[] { "Hp", "Pause" });
 
-            StringAssert.Contains("namespace MVVMGUI.Tests", code);
+            StringAssert.Contains("namespace MVVM.UGUI.Tests", code);
             StringAssert.Contains("partial class TestView", code);
-            StringAssert.Contains("private global::MVVMGUI.Elements.Core.Element[] generatedElements;", code);
-            StringAssert.Contains("private global::MVVMGUI.Tests.TestValueElement Hp => (global::MVVMGUI.Tests.TestValueElement)generatedElements[0];", code);
-            StringAssert.Contains("private global::MVVMGUI.Tests.TestCommandElement Pause => (global::MVVMGUI.Tests.TestCommandElement)generatedElements[1];", code);
+            StringAssert.Contains("private global::MVVM.UGUI.Elements.Core.Element[] generatedElements;", code);
+            StringAssert.Contains("private global::MVVM.UGUI.Tests.TestValueElement Hp => (global::MVVM.UGUI.Tests.TestValueElement)generatedElements[0];", code);
+            StringAssert.Contains("private global::MVVM.UGUI.Tests.TestCommandElement Pause => (global::MVVM.UGUI.Tests.TestCommandElement)generatedElements[1];", code);
         }
 
         [Test]

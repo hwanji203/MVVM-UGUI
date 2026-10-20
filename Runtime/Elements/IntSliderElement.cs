@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>정수 슬라이더 ↔ Bindable&lt;int&gt; (품질 단계 · 개수). 붙이는 순간 Whole Numbers 를 켠다.</summary>
     [RequireComponent(typeof(Slider))]

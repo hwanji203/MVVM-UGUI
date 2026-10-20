@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using MVVMGUI.Binding;
-using MVVMGUI.Core;
-using MVVMGUI.Elements;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Core;
+using MVVM.UGUI.Elements;
 using NUnit.Framework;
 using TMPro;
 using UnityEditor;
@@ -13,7 +13,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace MVVMGUI.Tests
+namespace MVVM.UGUI.Tests
 {
     // 에디트 모드에서도 Awake · OnEnable 이 돌도록 (리스너 연결 · 켜짐 판정)
     [ExecuteAlways] public class TestSliderElement : SliderElement { }

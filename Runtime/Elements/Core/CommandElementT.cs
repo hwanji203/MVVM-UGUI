@@ -1,6 +1,6 @@
-using MVVMGUI.Binding;
+using MVVM.UGUI.Binding;
 
-namespace MVVMGUI.Elements.Core
+namespace MVVM.UGUI.Elements.Core
 {
     /// <summary>인자 있는 Command 를 실행하는 Element (끌어다 놓은 곳 번호 등).</summary>
     public abstract class CommandElement<T> : Element

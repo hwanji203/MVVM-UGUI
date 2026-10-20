@@ -1,8 +1,8 @@
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 켜고 끄기. Active = SetActive (트윈 없음), Fade = CanvasGroup 투명도, Scale = 크기 0 ↔ 1.

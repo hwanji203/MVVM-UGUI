@@ -1,4 +1,4 @@
-# MVVMGUI 설계
+# MVVM UGUI 설계
 
 > UGUI 용 MVVM 틀. 2026-10-14 ~ 15 사용자 (hwanji203, 이니셜 JTH) 와 Claude 가 대화로 확정했다.
 > 원본 설계: Project_B `Docs/design/unity-ui-architecture.md` (게임 내용이 섞여 있음). 이 문서는 그중 **틀에 해당하는 부분만** 프로젝트와 무관하게 옮긴 것이다.
@@ -116,7 +116,7 @@ Dead    = Bindable.Select(Hp, h => h <= 0).bindable;               // Select 는
 
 "원본이 바뀌면 무엇을 갱신할지" 를 **만들 때 한 번** 선언한다. 원본을 바꾸는 이벤트가 늘어도 갱신 코드는 안 는다.
 **해제 (사용자 2026-10-18):** 파생 값은 원본 구독을 끊을 수 있어야 한다. 원본이 VM 자신의 값이면 같이 버려지므로 끊지 않아도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own` — 안 하면 화면을 닫아도 원본이 파생 값을 붙잡아 계속 다시 계산된다. `Combine` 은 값과 해제가 한 객체 (생성자가 원본을 구독, `Dispose` 로 끊음), `Select` 는 아직 튜플. `Own` 을 잊어도 컴파일은 되므로 오래 사는 원본일 때는 리뷰로 본다.
-`[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVMGUI.Binding` (ROADMAP "정한 세부").
+`[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVM.UGUI.Binding` (ROADMAP "정한 세부").
 
 ### 2.3 `Command` (확정)
 
@@ -260,7 +260,7 @@ protected override void Apply(float v) => slider.SetValueWithoutNotify(v);   // 
 | | `PunchElement` | 어떤 `Bindable` · `Signal` 이든 | 바뀌면 통통 (첫 값은 안 튐) |
 | | `TooltipElement` | `string` | delay 초 머무르면 띄움 — 터치는 길게 누르면 (누를 때 들어오고 뗄 때 나가서 같은 규칙) |
 
-**AssistComponent (`Runtime/AssistComponent`, namespace `MVVMGUI.AssistComponent`)** — 값을 묶지 않아 Element 가 아닌 것 (사용자 10-20): `ButtonFeedback` (올림 · 누름 때 크기 · 투명도) · `DropZone` (놓을 곳 번호) · `SafeArea` (모바일 노치).
+**AssistComponent (`Runtime/AssistComponent`, namespace `MVVM.UGUI.AssistComponent`)** — 값을 묶지 않아 Element 가 아닌 것 (사용자 10-20): `ButtonFeedback` (올림 · 누름 때 크기 · 투명도) · `DropZone` (놓을 곳 번호) · `SafeArea` (모바일 노치).
 
 뺀 것 (사용자 10-20): Localized 글 · 키 다시 배정 · 단축키 (의존성 — 프로젝트 쪽), SpriteSwitch · Swap · Rotation · AnchoredPosition · ProgressText (VM `Combine` 으로) · ScrollPosition · SelectableList (`Command<int>` + 항목 VM 의 `IsSelected` 로) · RecycleList · PageIndicator · CooldownButton (버튼 + Cooldown 조합). 칸 게이지 (SegmentGauge) 는 `CountIconsElement` 와 같은 일이라 합쳤다 (Claude).
 
@@ -327,7 +327,7 @@ partial class BattleHudView
   배열 이름 `generatedElements` 를 바꾸면 프리팹의 참조가 끊긴다.
 - 속성 이름 = 오브젝트 이름에서 C# 에 못 쓰는 글자를 뺀 것 (숫자로 시작하면 `_`, 키워드면 `@`). 이름이 비거나 겹치면 **파일을 건드리지 않고 멈추고** 어느 오브젝트인지 알린다.
 - View 클래스에는 `partial` 만 붙인다 (없으면 멈추고 알림). 생성 파일은 View 스크립트 옆 `<View>.Elements.g.cs`, 타입은 `global::` 전체 이름이라 `using` 이 필요 없다. 제네릭 · 중첩 클래스 View 는 생성하지 않는다.
-- **언제 생성 (확정)**: 프리팹 모드에서 저장할 때 (`PrefabStage.prefabSaving`) · GameObject 인스펙터 머리의 **"MVVMGUI · Element 속성 생성"** 버튼 · `Tools/MVVMGUI/선택한 View 의 Element 속성 생성`. 내용이 같으면 파일을 다시 쓰지 않는다. (자동 연결이 없어져 "스크립트 컴파일이 끝날 때" 다시 생성은 뺐다 — 사용자 10-18.)
+- **언제 생성 (확정)**: 프리팹 모드에서 저장할 때 (`PrefabStage.prefabSaving`) · GameObject 인스펙터 머리의 **"MVVM UGUI · Element 속성 생성"** 버튼 · `Tools/MVVM UGUI/선택한 View 의 Element 속성 생성`. 내용이 같으면 파일을 다시 쓰지 않는다. (자동 연결이 없어져 "스크립트 컴파일이 끝날 때" 다시 생성은 뺐다 — 사용자 10-18.)
 - 어긋남: 저장할 때마다 다시 만들므로 배열과 속성은 맞춰진다. 프리팹을 저장하지 않은 채 Element 종류만 바꾸면 실행 중 형변환 예외가 난다 — 그때는 버튼으로 다시 생성. (처음 설계의 `OnValidate` · `Awake` 검사는 생성된 파일이 하위 View 의 같은 이름 메서드와 부딪혀 넣지 않았다 `[세부]`.)
 
 ### 4.2 자동 연결은 없다 (사용자 2026-10-18 — 처음 설계의 `AutoBind` 를 뺐다)
@@ -446,15 +446,15 @@ public partial class SettingView : PopupView<SettingViewModel>
 ### 7.1 구성
 
 ```
-MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.mvvmgui)
+MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae.mvvm-ugui)
  ├ package.json · README.md · AGENTS.md
  ├ Documentation~/  DESIGN.md (이 문서) · ROADMAP.md · HANDOFF-APES.md   (~ 로 끝나는 폴더는 Unity 가 무시)
- ├ Runtime/  (asmdef MVVMGUI)          Binding · Core (ViewModel · ScreenView · ItemView · ScreenManager) · Elements · AssistComponent · Sound (UISoundSO) · Templates (PopupView)
- ├ Editor/   (asmdef MVVMGUI.Editor)   Element 속성 생성기
- └ Tests/    (asmdef MVVMGUI.Tests)    EditMode 테스트
+ ├ Runtime/  (asmdef MVVM.UGUI)          Binding · Core (ViewModel · ScreenView · ItemView · ScreenManager) · Elements · AssistComponent · Sound (UISoundSO) · Templates (PopupView)
+ ├ Editor/   (asmdef MVVM.UGUI.Editor)   Element 속성 생성기
+ └ Tests/    (asmdef MVVM.UGUI.Tests)    EditMode 테스트
 ```
 
-- namespace `MVVMGUI` — 하위는 asmdef 폴더 기준 (`MVVMGUI.Binding` · `MVVMGUI.Core` · `MVVMGUI.Elements(.Core)` · `MVVMGUI.Editor` · `MVVMGUI.Tests`, `Runtime` 은 안 붙인다 — ROADMAP "정한 세부").
+- namespace `MVVM.UGUI` — 하위는 asmdef 폴더 기준 (`MVVM.UGUI.Binding` · `MVVM.UGUI.Core` · `MVVM.UGUI.Elements(.Core)` · `MVVM.UGUI.Editor` · `MVVM.UGUI.Tests`, `Runtime` 은 안 붙인다 — ROADMAP "정한 세부").
 - **Unity 6000.3 기준** — 더 새 버전에만 있는 API 는 쓰지 않는다.
 - 의존: UGUI (TMP 포함) — `package.json`. **DOTween** 은 선언할 수 없어 프로젝트에 설치되어 있어야 한다.
 
@@ -462,7 +462,7 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
 
 | 프로젝트 | 참조 |
 | --- | --- |
-| Project_B (사용자 혼자, Unity 6000.6) | `file:../../../MVVMGUI` (로컬) + `testables` |
+| Project_B (사용자 혼자, Unity 6000.6) | `file:../../../MVVM-UGUI` (로컬) + `testables` |
 | Apes (팀, Unity 6000.3) | git URL + 태그 (사용자 10-18). 화면은 Apes 에서 만들고, 틀과 Element 는 이 저장소에서 (Element 는 10-20 에 바꿈) — 사용자 PC 에서는 `Packages/` 에 이 저장소 clone 을 내장 패키지로 두고 고친다 (ROADMAP "Apes 에서 고치는 흐름") |
 
 ### 7.3 프로젝트와 잇는 곳 (둘 다 선택)
@@ -484,4 +484,4 @@ MVVMGUI/                     (패키지 루트 = 저장소 루트, com.banggae.m
 
 ## 현재 작업 담당 (2026-10-18)
 
-2026-10-18 최신 결정 (10-15 결정을 바꿈): 사용자는 핵심 코드만 직접 작성하고, 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (경계는 `AGENTS.md` "현재 작업 담당"). Project_B에서 먼저 검증한다. 공용 코드는 MVVMGUI 패키지 저장소에서 직접 개발한다. Apes에서 구현한 뒤 복사하는 절차는 사용하지 않는다.
+2026-10-18 최신 결정 (10-15 결정을 바꿈): 사용자는 핵심 코드만 직접 작성하고, 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (경계는 `AGENTS.md` "현재 작업 담당"). Project_B에서 먼저 검증한다. 공용 코드는 MVVM UGUI 패키지 저장소에서 직접 개발한다. Apes에서 구현한 뒤 복사하는 절차는 사용하지 않는다.

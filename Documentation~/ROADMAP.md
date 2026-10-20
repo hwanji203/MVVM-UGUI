@@ -1,7 +1,7 @@
-# MVVMGUI 진행 순서
+# MVVM UGUI 진행 순서
 
 > 설계는 `DESIGN.md`. 단계마다 **컴파일 → 테스트 → 기록**. 단계 범위를 넘는 기능은 넣지 않는다.
-> 2026-10-18 최신 결정 (10-15 결정을 바꿈): 사용자는 핵심 코드만 직접 작성하고, 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (경계는 `AGENTS.md` "현재 작업 담당"). Project_B에서 먼저 검증한다. 공용 코드는 MVVMGUI 패키지 저장소에서 직접 개발한다. Apes에서 구현한 뒤 복사하는 절차는 사용하지 않는다.
+> 2026-10-18 최신 결정 (10-15 결정을 바꿈): 사용자는 핵심 코드만 직접 작성하고, 에디터 도구와 핵심 설계 문제가 아닌 디버깅은 AI가 한다 (경계는 `AGENTS.md` "현재 작업 담당"). Project_B에서 먼저 검증한다. 공용 코드는 MVVM UGUI 패키지 저장소에서 직접 개발한다. Apes에서 구현한 뒤 복사하는 절차는 사용하지 않는다.
 > **같은 날 이어서 (사용자): 틀 (UI0 테스트 · UI3 · UI4) 은 여기서 만들고 Project_B 로 확인한다. Element 추가 (UI2) 와 실제 화면 (UI6) 은 Apes 에서 화면과 함께. UI5 (목록) 는 `[?]`. Apes 에는 Git URL + 태그로 적용한다.** 코드는 이 저장소 `Runtime/` (Project_B DevLib 사본에서 옮김).
 > **2026-10-20 사용자: Element (UI2) 와 목록 (UI5) 도 패키지 저장소에서 만들고 Project_B 로 확인한다 (10-18 의 "Element 는 Apes 에서" 를 바꿈). 실제 화면 (UI6) 만 Apes 에서.**
 
@@ -18,7 +18,7 @@
 | UI6 | | 실제 화면 하나로 검증 | Apes: 사용자가 정한 화면 (10-18: Element 와 함께 Apes 에서). Project_B: 전투 HUD 는 틀이 갖춰진 뒤 `[?]` |
 
 어디서 하나 (사용자 10-18 → 10-20 바꿈): **UI0 테스트 · UI2 · UI3 · UI4 · UI5 = 이 저장소 (Project_B 로 확인)**, UI6 화면 = Apes.
-UI0 테스트: `Tests/` (asmdef `MVVMGUI.Tests`, Editor 전용, `UNITY_INCLUDE_TESTS`) 25개 — Project_B 에서 통과 (10-18). 실행은 Project_B 의 `ProjectEditor.Testing.TestCli` (eval) 또는 Test Runner.
+UI0 테스트: `Tests/` (asmdef `MVVM.UGUI.Tests`, Editor 전용, `UNITY_INCLUDE_TESTS`) 25개 — Project_B 에서 통과 (10-18). 실행은 Project_B 의 `ProjectEditor.Testing.TestCli` (eval) 또는 Test Runner.
 
 (UI1 은 "DOTween 가져오기" 였고 Project_B · Apes 모두 이미 있다.)
 
@@ -29,8 +29,8 @@ UI0 테스트: `Tests/` (asmdef `MVVMGUI.Tests`, Editor 전용, `UNITY_INCLUDE_T
 | 날짜 | 누가 | 무엇 | 이유 |
 | --- | --- | --- | --- |
 | 2026-10-18 | 사용자 | 파생 값은 원본 구독을 끊을 수 있어야 한다. 원본이 VM 자신의 값이면 끊지 않아도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own` (DESIGN 2.2). 처음엔 `Combine` · `Select` 모두 `(bindable, unSub)` 튜플 → 같은 날 **`Combine` 은 `CombineBindable<TR, T1, T2>` 객체** (`IReadOnlyBindable` + `IDisposable`, 생성자가 구독) 로 바꿈. `Select` 는 아직 튜플 | 오래 사는 원본이 구독 람다로 파생 값을 붙잡아, 화면을 닫아도 남아서 계속 다시 계산된다. 튜플은 `unSub` 을 잊기 쉬워 값과 해제를 한 객체로 |
-| 2026-10-18 | 사용자 | 바인딩 하위 namespace = `MVVMGUI.Binding` (`Bindable<T>` · 정적 `Bindable` · `BindableList<T>` · `Command`) | 처음 이름 `…Runtime.Bindable` 은 정적 클래스 `Bindable` 과 같아서, 패키지 안 (`MVVMGUI.Runtime.*`) 코드의 `Bindable.Combine` 이 네임스페이스로 잡혀 CS0234 (Roslyn 으로 확인) |
-| 2026-10-18 | 사용자 | namespace 는 **asmdef 폴더 기준, `Runtime` 없이**: `MVVMGUI` (UnSubscriber · DisposableBag) · `MVVMGUI.Binding` · `MVVMGUI.Core` · `MVVMGUI.Elements` · `MVVMGUI.Elements.Core` · `MVVMGUI.Editor` · `MVVMGUI.Tests` | Rider 는 asmdef 가 있는 폴더 (`Runtime/`) 를 뿌리로 보고 네임스페이스를 기대한다 — `MVVMGUI.Runtime.*` 는 어긋남 경고. 설계 문서도 처음부터 `MVVMGUI.Binding` 꼴 |
+| 2026-10-18 | 사용자 | 바인딩 하위 namespace = `MVVM.UGUI.Binding` (`Bindable<T>` · 정적 `Bindable` · `BindableList<T>` · `Command`) | 처음 이름 `…Runtime.Bindable` 은 정적 클래스 `Bindable` 과 같아서, 패키지 안 (`MVVM.UGUI.Runtime.*`) 코드의 `Bindable.Combine` 이 네임스페이스로 잡혀 CS0234 (Roslyn 으로 확인) |
+| 2026-10-18 | 사용자 | namespace 는 **asmdef 폴더 기준, `Runtime` 없이**: `MVVM.UGUI` (UnSubscriber · DisposableBag) · `MVVM.UGUI.Binding` · `MVVM.UGUI.Core` · `MVVM.UGUI.Elements` · `MVVM.UGUI.Elements.Core` · `MVVM.UGUI.Editor` · `MVVM.UGUI.Tests` | Rider 는 asmdef 가 있는 폴더 (`Runtime/`) 를 뿌리로 보고 네임스페이스를 기대한다 — `MVVM.UGUI.Runtime.*` 는 어긋남 경고. 설계 문서도 처음부터 `MVVM.UGUI.Binding` 꼴 |
 | 2026-10-18 | 사용자 | `Command` 생성자의 사용 가능 기본값 = `true` (`new Command(action, active = true)`) | 기본값 `false` 면 `new Command(OnClick)` 이 꺼진 버튼으로 시작한다 |
 | 2026-10-18 | 사용자 | **자동 연결 (`AutoBind`) 은 없앤다** — 생성기는 Element 속성만, 연결은 전부 View 의 `Bind` 에 손으로 (DESIGN 4.2). 생성 시점도 프리팹 저장 + 버튼만 (컴파일 뒤 다시 생성 뺌) | 자동으로 `A ↔ a` 가 묶인 뒤 손으로 `B ↔ a` 를 묶으면 A 의 연결이 안 끊겨 둘 다 `a` 를 본다. 막으려면 이름 바꾸기 · `Unbind` · 제외 표시가 필요하고 연결이 코드에 다 안 드러난다 |
 | 2026-10-18 | 사용자 (구현은 Claude 에 맡김) | **Element 의 구독은 바탕 `Element` 의 `DisposableBag Bindings` 하나에 담는다.** 하위 Element 는 `Bind` 에서 먼저 `Unbind()` (= 바구니 비우기) 하고 담는다. `Element.OnDestroy` 는 `protected virtual` 이고 `Unbind()` 를 부른다. `CommandElement` 는 `Unbind` 를 덮어 `CallCommand` 도 비운다. `AbstractViewModel` 의 `Own` 도 같은 `DisposableBag` 을 쓴다 | Element 마다 해제 핸들 · `?.Dispose()` · `= null` 을 반복했고 빠뜨리기 쉬웠다 (`ReadOnlyListElement` 의 요소 구독 누락). 설계의 `Unbind()` 도 생긴다. 한 Element 가 서로 다른 원본 둘을 따로 묶게 되면 한쪽 재바인딩이 다른 쪽도 끊으니 그때 다시 본다 |
@@ -38,7 +38,7 @@ UI0 테스트: `Tests/` (asmdef `MVVMGUI.Tests`, Editor 전용, `UNITY_INCLUDE_T
 | 2026-10-18 | 사용자 (나누기는 Claude 에 맡김) | `ScreenView` 를 둘로: 제네릭 아닌 `ScreenView` (열기 · 닫기 · 연출 · 전환 취소) + `ScreenView<T> : ScreenView` (VM 생성 · Bind · Dispose). `ScreenManager` · 생성기는 제네릭 아닌 쪽만 본다 (DESIGN 5.0) | `ScreenView<A>` · `ScreenView<B>` 를 함께 다룰 공통 타입이 없어 `ScreenManager` 의 목록 · 스택 · `Open<T>() where T : ScreenView` 를 쓸 수 없었다. 생성기도 리플렉션으로 `ScreenView<>` 를 찾아야 했다 |
 | 2026-10-18 | 사용자 (UniTask 코드는 Claude 에 맡김) | `ScreenView.Open` · `Close` 는 `UniTask` 를 돌려준다. 켜기 / 끄기와 `OnOpen` · `OnClose` 사이에 `PlayOpen` · `PlayClose (CancellationToken)` 연출 자리. 새 열기 · 닫기 · 파괴가 오면 진행 중인 것은 취소 (알림 없음). 패키지는 **UniTask 2.5.11 이상**에 의존 (asmdef 참조, 설치는 프로젝트가 — README) | 팝업 연출이 끝난 뒤에 알리거나 끄려면 기다려야 한다. Apes 가 이미 UniTask 를 쓴다. 2.5.10 은 Unity 6000.2+ 에서 TreeView API 변경으로 에디터 코드가 컴파일되지 않아 2.5.11 로 (Project_B 에서 확인). 대안 Unity `Awaitable` 은 의존성이 없지만 사용자가 UniTask 를 골랐다 |
 | 2026-10-18 | 사용자 (구현은 Claude 에 맡김) | `Command` 는 `Active` (읽기 전용 Bindable) · `Execute()` (꺼져 있으면 무시) · `SetEnabled` 를 내준다. `Bind` 가 돌려주던 `(실행 함수, 해제)` 튜플은 없앰 — `CommandElement` 는 `Active` 만 구독하고 눌리면 `Execute()`. 설계의 "밖의 Bindable 을 `canExecute` 로 받기" 는 지금은 안 함 (`SetEnabled` 로 충분, 필요해지면) | 튜플 때문에 Element 가 실행 함수 (`CallCommand`) 를 따로 들고 `Unbind` 에서 비워야 했다 |
-| 2026-10-18 | 사용자 (구현은 Claude 에 맡김) | 해제 핸들은 **`System.IDisposable`** — 직접 만든 `MVVMGUI.IDisposable` 삭제. `AbstractViewModel` 도 `IDisposable` (DESIGN 2.5) | 쓰는 쪽 파일에 `using System;` · `using MVVMGUI;` 가 같이 있으면 `IDisposable` 이 모호해 CS0104. `using (...)` 문 · UniTask 같은 다른 라이브러리와도 안 맞았다 |
+| 2026-10-18 | 사용자 (구현은 Claude 에 맡김) | 해제 핸들은 **`System.IDisposable`** — 직접 만든 `MVVM.UGUI.IDisposable` 삭제. `AbstractViewModel` 도 `IDisposable` (DESIGN 2.5) | 쓰는 쪽 파일에 `using System;` · `using MVVM.UGUI;` 가 같이 있으면 `IDisposable` 이 모호해 CS0104. `using (...)` 문 · UniTask 같은 다른 라이브러리와도 안 맞았다 |
 | 2026-10-18 | 사용자 (구현은 Claude 에 맡김) | Element 의 컴포넌트 참조는 `Reset()` 에서 채운다 (`OnValidate` 의 "비어 있으면 GetComponent" 대신, DESIGN 3.3) | 설계대로 — 붙이는 순간 · 인스펙터 Reset 때 잡는다. 매 검증마다 돌 필요가 없다 |
 | 2026-10-18 | 사용자 (구현은 Claude 에 맡김) | `CombineBindable` · `SelectBindable` 은 안에 `Bindable<T>` 를 두고 `Value` · `Bind` 를 맡긴다 (원본 구독은 `DisposableBag` · 필드 하나). 같은 값 비교는 `EqualityComparer<T>.Default` (`Bindable` · `BindableList` 인덱서). `BindableList.Remove` 는 지웠을 때만 알리고 `bool` 을 돌려준다 | 값 저장 · 같은 값 무시 · 알림이 세 클래스에 복사돼 있었다. `Equals(object)` 는 값 타입에서 값을 넣을 때마다 박싱. 없는 항목을 `Remove` 해도 "바뀌었다" 고 알렸다 |
 | 2026-10-19 | 사용자 (안을 세 번 바꿈, Claude 는 대안 · 반례) | **`ScreenManager` 의 키는 ViewModel 타입.** `void Open<TVM>(Action<TVM> setup = null)` · `UniTask OpenAsync<TVM>(setup)`. `setup` 은 `Instantiate` 뒤 · 열기 전에 불려 그때마다 넣을 값을 VM 에 넣고, VM 은 돌려주지 않는다. VM 생성 · SO 는 그대로 View. 닫기는 `Close<TVM>()` · `CloseAsync<TVM>()` (그 VM 타입의 맨 위 인스턴스). `ScreenView.Open` · `Close` 도 `OpenAsync` · `CloseAsync` 로 이름을 바꿈 (Claude 가 바꾸고 테스트 고침). 매니저가 VM 타입을 얻는 길은 `[?]` (DESIGN 5.1). 거친 안: ① VM 을 Registry 에 넣고 VM 이 프리팹을 든다 ② Registry 항목 `ScreenEntry` (프리팹 + SO + `CreateVM`) + enum ③ `T Open<T>()` (T = 화면) | ① VM → View 의존 · 항목마다 VM 하나 · 생성자 매개변수 불가 · 패키지가 DevLib 에 묶임 ② 패키지 밖 연결 코드 · `Instantiate` 뒤 VM 넣기 · 프리팹-VM 짝 확인이 새로 필요 ③ 여는 쪽이 View 를 알게 된다. VM 타입 키는 여는 쪽이 VM 만 알고 (1절) 팝업마다 다른 값을 넣을 곳이 생긴다. VM 을 돌려주면 닫힌 뒤 `Dispose` 된 VM 에 값을 넣는 버그가 조용히 생긴다. `void` · `UniTask` 는 반환 타입만으로 오버로딩이 안 돼 (CS0111) `Async` 로 이름을 나눔. 단점: VM 타입 하나에 프리팹 하나, 인스펙터 · 이벤트 데이터에 "어느 화면" 을 담기 어렵다 (필요하면 프로젝트에서 enum → `Open<TVM>` 매핑) |
@@ -50,7 +50,8 @@ UI0 테스트: `Tests/` (asmdef `MVVMGUI.Tests`, Editor 전용, `UNITY_INCLUDE_T
 | 2026-10-20 | 사용자 (구현은 Claude 에 맡김 — 처음엔 사용자가 쓰기로 했다가 위임) | **`TweenValueElement<T>`** — 트윈 규칙 한 곳: 첫 값 · 꺼짐 · 플레이 아님 · duration 0 이면 바로, 트윈 중 새 값은 `Kill` 뒤 지금 위치에서, 트윈 중 꺼지면 목표로 바로. 하위는 `ApplyImmediate` · `AppendTween(Sequence, value)` | 트윈 Element 7개가 같은 판단을 반복한다. `Complete` 는 이전 목표로 튀고, DOTween 은 꺼진 오브젝트 트윈도 돌린다. `Sequence` 라 트윈 둘 (잔상 게이지) 도 된다. 단점: 단일 상속 |
 | 2026-10-20 | 사용자 (Claude 추천 (b)) | **목록 = 제네릭 아닌 `ItemListElement` + 제네릭 `Bind<TItem>`**, 항목 프리팹 `ItemView<TItem>` 타입은 Bind 때 확인. 항목 View 는 VM 을 받기만 하고 Dispose 안 함, 꺼 두고 재사용 | 제네릭 MonoBehaviour 는 붙일 수 없다. 목록마다 한 줄 하위 클래스 (a) 는 타입이 컴파일에 잡히지만 파일이 는다 |
 | 2026-10-20 | 사용자 (Claude 추천) | **끌어다 놓기 = `DragElement` (`Command<int>`) + `DropZone` (AssistComponent, 인스펙터 번호)**, 놓은 곳 없으면 -1, 늘 제자리로 | VM 이 놓은 곳만 알면 된다 — 무엇을 끌었는지는 항목마다 자기 Command 로 안다. 옮길지는 VM 이 정하고 목록이 다시 그린다 |
-| 2026-10-20 | Claude (세부) | DOTween 은 본체 API 만 (`DOTween.To` · `DOScale` 등, Modules 의 `DOFade` · `DOFillAmount` 안 씀) · `SetLink(gameObject)` · 기본 `SetUpdate(true)`. Element 는 `Awake` 를 믿지 않고 원래 글 · 색 · 위치를 처음 값을 받을 때 읽는다. 소리: 버튼 · 토글 · 토글 그룹 · 스테퍼 · 클릭 영역 · 배경 = 클릭, 길게 누르기 = 다 찼을 때, 잠긴 버튼 = 막힌 소리, 슬라이더 없음. 칸 게이지는 `CountIconsElement` 에 합침. `MVVMGUI.asmdef` 에 `UnityEngine.UI` 참조 추가, 테스트 asmdef 에 UI · TMP | Modules 는 Project_B 에선 Assembly-CSharp, Apes 에선 따로 asmdef 라 패키지가 참조할 수 없다. 꺼진 채 만들어진 Element 는 `Awake` 보다 View 의 `Bind` 가 먼저 온다. UI 참조는 지금은 자동으로 잡혀도 명시하는 게 안전 |
+| 2026-10-20 | Claude (세부) | DOTween 은 본체 API 만 (`DOTween.To` · `DOScale` 등, Modules 의 `DOFade` · `DOFillAmount` 안 씀) · `SetLink(gameObject)` · 기본 `SetUpdate(true)`. Element 는 `Awake` 를 믿지 않고 원래 글 · 색 · 위치를 처음 값을 받을 때 읽는다. 소리: 버튼 · 토글 · 토글 그룹 · 스테퍼 · 클릭 영역 · 배경 = 클릭, 길게 누르기 = 다 찼을 때, 잠긴 버튼 = 막힌 소리, 슬라이더 없음. 칸 게이지는 `CountIconsElement` 에 합침. `MVVM.UGUI.asmdef` 에 `UnityEngine.UI` 참조 추가, 테스트 asmdef 에 UI · TMP | Modules 는 Project_B 에선 Assembly-CSharp, Apes 에선 따로 asmdef 라 패키지가 참조할 수 없다. 꺼진 채 만들어진 Element 는 `Awake` 보다 View 의 `Bind` 가 먼저 온다. UI 참조는 지금은 자동으로 잡혀도 명시하는 게 안전 |
+| 2026-10-21 | 사용자 (세부 이름은 관례대로 Claude 에 맡김) | **이름을 MVVM UGUI 로** (마지막 변경). 표시 이름 `MVVM UGUI` · UPM `com.banggae.mvvm-ugui` · namespace / asmdef `MVVM.UGUI` (`.Binding` · `.Core` · `.Elements` · `.Editor` · `.Tests` …) · 저장소 · 폴더 `MVVM-UGUI` · 메뉴 `Tools/MVVM UGUI` · 로그 `[MVVM UGUI]`. 버전 0.2.0 (이름이 바뀌어 기존 참조가 깨지므로) | UI Toolkit 이 아니라 UGUI 용임이 이름에 드러난다. 곳마다 관례: UPM 이름은 소문자 + `-`, C# 이름은 `-` 불가 · `_` 는 .NET 이름 규칙 위반이라 점으로 나눔, 저장소는 `-`. 스크립트 GUID (`.meta`) 는 그대로라 붙인 컴포넌트는 안 깨진다. 이미 만든 `.g.cs` 는 전체 이름을 써서 다시 생성해야 한다 |
 | 2026-10-20 | 사용자 | **Element 의 주석은 Claude 가 단다 (적당히).** 사용자는 Element 에 학습용 주석을 달지 않고 필요할 때 읽는다. 클래스 설명 + 이유가 안 보이는 곳에만 한 줄 | Element 는 같은 꼴의 반복이라 주석 쓰기가 학습보다 반복 작업에 가깝다. 바탕 · 틀 (Binding · ScreenView · ScreenManager · PopupView) 의 주석은 그대로 사용자 몫 |
 | 2026-10-20 | Claude (디버깅) | `FormElement`: `Debug.Assert(source != null)` → `Source != null` (형변환 결과를 봐야 한다), `Unbind` 에서 `Source` 비움, 쓰기는 `Write(value)` (Source 없으면 무시). 지웠던 `ButtonElement` · `TextViewElement` 는 예전 `.meta` GUID 로 다시 만듦 | 읽기 전용 원본을 넘겨도 경고가 안 났고, 끊은 뒤에도 옛 Bindable 에 썼다. GUID 를 지키면 이미 붙인 프리팹이 안 깨진다 |
 | 2026-10-18 | Claude (디버깅) | `AbstractView` 의 `new()` 제약 삭제 · 파괴될 때 VM `Dispose` (`protected virtual OnDestroy` — 하위가 쓰면 `base.OnDestroy()`) · `AbstractViewModel.Dispose` 뒤 목록 비움 | `CreateVM` 이 있어 `new()` 는 생성자에 SO 를 받는 VM 만 막았다 · `Own` 한 구독이 풀리지 않았다 · 두 번 `Dispose` 하면 두 번 풀렸다 |
@@ -69,11 +70,11 @@ Git URL 패키지는 Apes 안에서 고칠 수 없다 (`Library/PackageCache` �
 
 | 곳 | 역할 |
 | --- | --- |
-| GitHub `hwanji203/MVVMGUI` | 원본. 모든 수정은 결국 여기로 push |
-| Apes `Packages/com.banggae.mvvmgui/` (사용자 PC 에만) | **주 작업 장소** — 이 저장소의 clone. 고치면 Apes 에 바로 반영. Apes git 은 무시 |
-| `D:/GameDev_C/Projects/Unity/MVVMGUI` | Project_B 가 `file:` 로 쓰는 사본 — 여기서 고치고 push 해도 된다 (두 사본은 같은 원본의 clone 으로 동등) |
+| GitHub `hwanji203/MVVM-UGUI` | 원본. 모든 수정은 결국 여기로 push |
+| Apes `Packages/com.banggae.mvvm-ugui/` (사용자 PC 에만) | **주 작업 장소** — 이 저장소의 clone. 고치면 Apes 에 바로 반영. Apes git 은 무시 |
+| `D:/GameDev_C/Projects/Unity/MVVM-UGUI` | Project_B 가 `file:` 로 쓰는 사본 — 여기서 고치고 push 해도 된다 (두 사본은 같은 원본의 clone 으로 동등) |
 
-1. **처음 한 번** (Apes 세션, Apes 팀 규칙대로): 위 폴더에 clone → Apes 의 `.git/info/exclude` 에 `Packages/com.banggae.mvvmgui/` (내 PC 전용 — 팀 파일을 안 건드림) → manifest 에 `"com.banggae.mvvmgui": "https://github.com/hwanji203/MVVMGUI.git#v0.1.0"` (manifest 변경 — 팀 승인 1회).
+1. **처음 한 번** (Apes 세션, Apes 팀 규칙대로): 위 폴더에 clone → Apes 의 `.git/info/exclude` 에 `Packages/com.banggae.mvvm-ugui/` (내 PC 전용 — 팀 파일을 안 건드림) → manifest 에 `"com.banggae.mvvm-ugui": "https://github.com/hwanji203/MVVM-UGUI.git#v0.2.0"` (manifest 변경 — 팀 승인 1회).
 2. **평소**: Apes 에서 화면을 만들다 부품이 필요하면 clone 안의 코드를 고치고, 그 폴더 (= 이 저장소) 에서 commit · push. Apes 저장소의 커밋과는 별개.
    Project_B 쪽 사본에서 고쳐도 된다 (사용자 10-18 확인). **어느 사본이든 고치기 전에 `git pull`, 끝나면 push** — 두 곳에서 따로 커밋하면 갈라진다.
    Project_B (6000.6) 에서 고칠 때는 6000.3 에 있는 API 만 쓴다 — 아니면 Apes 에서 컴파일이 깨진다.

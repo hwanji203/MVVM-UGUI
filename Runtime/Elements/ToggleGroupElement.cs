@@ -1,9 +1,9 @@
-using MVVMGUI.Elements.Core;
-using MVVMGUI.Sound;
+using MVVM.UGUI.Elements.Core;
+using MVVM.UGUI.Sound;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 여러 토글 중 하나만 고른다 ↔ Bindable&lt;int&gt; (난이도 · 정렬 기준). Unity ToggleGroup 없이 이 Element 가 하나만 켠다.

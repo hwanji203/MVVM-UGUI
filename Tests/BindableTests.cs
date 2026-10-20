@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using MVVMGUI.Binding;
+using MVVM.UGUI.Binding;
 using NUnit.Framework;
 
-namespace MVVMGUI.Tests
+namespace MVVM.UGUI.Tests
 {
     public class BindableTests
     {

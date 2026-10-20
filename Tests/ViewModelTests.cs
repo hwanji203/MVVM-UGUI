@@ -1,11 +1,11 @@
 using System;
-using MVVMGUI.Binding;
-using MVVMGUI.Core;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Core;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace MVVMGUI.Tests
+namespace MVVM.UGUI.Tests
 {
     public class CountingDisposable : IDisposable
     {

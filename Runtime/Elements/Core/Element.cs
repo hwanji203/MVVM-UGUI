@@ -1,7 +1,7 @@
 ﻿using DG.Tweening;
 using UnityEngine;
 
-namespace MVVMGUI.Elements.Core
+namespace MVVM.UGUI.Elements.Core
 {
     public class Element : MonoBehaviour
     {

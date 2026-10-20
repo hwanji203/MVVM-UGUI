@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using MVVMGUI.Binding;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 드롭다운 ↔ 고른 번호 Bindable&lt;int&gt;.

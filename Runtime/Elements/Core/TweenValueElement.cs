@@ -1,7 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 
-namespace MVVMGUI.Elements.Core
+namespace MVVM.UGUI.Elements.Core
 {
     /// <summary>
     /// 값이 바뀌면 트윈으로 따라가는 Element 의 바탕. 언제 트윈하고 언제 바로 맞출지는 여기서만 정한다 (DESIGN 3.4).

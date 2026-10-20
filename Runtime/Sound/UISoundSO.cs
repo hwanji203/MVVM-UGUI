@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MVVMGUI.Sound
+namespace MVVM.UGUI.Sound
 {
     /// <summary>
     /// UI 가 내는 소리 하나. Element 는 Play() 만 부른다 — 소리를 어떻게 내는지는 이 SO 를 구현한 쪽이 정한다 (DESIGN 3.5).

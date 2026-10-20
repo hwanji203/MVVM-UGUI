@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MVVMGUI
+namespace MVVM.UGUI
 {
     public class UnSubscriber : IDisposable
     {

@@ -1,10 +1,10 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 팝업 창의 열기 · 닫기 연출 (옛 DoTweenWindowForm) — 크기 closedScale ↔ 1, CanvasGroup 이 있으면 투명도도.

@@ -1,12 +1,12 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
-using MVVMGUI.Sound;
+using MVVM.UGUI.Elements.Core;
+using MVVM.UGUI.Sound;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 팝업 뒤 어두운 배경 (옛 BackgroundForm) — 열고 닫을 때 페이드, 누르면 Command (보통 닫기).

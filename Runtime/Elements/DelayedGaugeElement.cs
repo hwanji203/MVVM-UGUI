@@ -1,9 +1,9 @@
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 잔상이 따라오는 게이지 (격투게임 HP 바). 앞 · 뒤 Image 두 장 (Filled).

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace MVVMGUI.AssistComponent
+namespace MVVM.UGUI.AssistComponent
 {
     /// <summary>
     /// 누를 수 있는 것에 붙이는 손맛 연출 (옛 FadeButtonForm) — 올리면 · 누르면 크기 · 투명도가 바뀐다.

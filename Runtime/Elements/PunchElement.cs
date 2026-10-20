@@ -1,9 +1,9 @@
 using DG.Tweening;
-using MVVMGUI.Binding;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 값이 바뀌면 통통 튄다 (골드 · 점수 글 옆에 함께 붙인다). 어떤 타입의 Bindable 이든 Signal 이든 묶을 수 있다.

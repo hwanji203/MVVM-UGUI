@@ -1,9 +1,9 @@
 {
-    "name": "MVVMGUI.Tests",
-    "rootNamespace": "MVVMGUI.Tests",
+    "name": "MVVM.UGUI.Tests",
+    "rootNamespace": "MVVM.UGUI.Tests",
     "references": [
-        "MVVMGUI",
-        "MVVMGUI.Editor",
+        "MVVM.UGUI",
+        "MVVM.UGUI.Editor",
         "UniTask",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",

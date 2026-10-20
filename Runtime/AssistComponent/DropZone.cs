@@ -1,8 +1,8 @@
-using MVVMGUI.Elements;
+using MVVM.UGUI.Elements;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace MVVMGUI.AssistComponent
+namespace MVVM.UGUI.AssistComponent
 {
     /// <summary>
     /// <see cref="DragElement"/> 를 놓을 수 있는 곳. 놓이면 DragElement 가 이 번호로 Command 를 실행한다.

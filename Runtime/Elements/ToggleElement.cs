@@ -1,9 +1,9 @@
-using MVVMGUI.Elements.Core;
-using MVVMGUI.Sound;
+using MVVM.UGUI.Elements.Core;
+using MVVM.UGUI.Sound;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>토글 ↔ Bindable&lt;bool&gt;. 누르면 클릭 소리.</summary>
     [RequireComponent(typeof(Toggle))]

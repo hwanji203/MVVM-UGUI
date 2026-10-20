@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MVVMGUI
+namespace MVVM.UGUI
 {
     /// <summary>해제 핸들 여러 개를 담았다가 한 번에 푼다. 비운 뒤에도 다시 담을 수 있다 (다시 묶을 때).</summary>
     public class DisposableBag : IDisposable

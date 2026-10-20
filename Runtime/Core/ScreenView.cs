@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace MVVMGUI.Core
+namespace MVVM.UGUI.Core
 {
     /// <summary>
     /// 모든 화면의 바탕 (제네릭 아님) — 열기 · 닫기와 그 연출만 안다. ScreenManager 는 이것만 보고 화면을 다룬다.

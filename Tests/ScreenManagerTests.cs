@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
-using MVVMGUI.Core;
+using MVVM.UGUI.Core;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
-namespace MVVMGUI.Tests
+namespace MVVM.UGUI.Tests
 {
     public class OtherTestViewModel : AbstractViewModel { }
 

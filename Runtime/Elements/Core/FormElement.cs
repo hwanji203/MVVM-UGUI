@@ -1,7 +1,7 @@
-using MVVMGUI.Binding;
+using MVVM.UGUI.Binding;
 using UnityEngine;
 
-namespace MVVMGUI.Elements.Core
+namespace MVVM.UGUI.Elements.Core
 {
     public abstract class FormElement<T> : VisualElement<T>
     {

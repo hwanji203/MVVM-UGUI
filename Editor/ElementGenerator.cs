@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using MVVMGUI.Core;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace MVVMGUI.Editor
+namespace MVVM.UGUI.Editor
 {
     /// <summary>
     /// View 의 `&lt;View&gt;.Elements.g.cs` 를 쓰고, 프리팹 · 씬의 숨은 배열에 Element 참조를 채운다.
@@ -21,8 +21,8 @@ namespace MVVMGUI.Editor
 
         public enum Trigger { Manual, PrefabSaving }
 
-        private const string PendingKey = "MVVMGUI.ElementGenerator.Pending";
-        private const string LogPrefix = "[MVVMGUI] ";
+        private const string PendingKey = "MVVM.UGUI.ElementGenerator.Pending";
+        private const string LogPrefix = "[MVVM UGUI] ";
 
         public static Result Generate(MonoBehaviour view, Trigger trigger = Trigger.Manual)
         {

@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>슬라이더 ↔ Bindable&lt;float&gt; (볼륨 · 감도). 범위 제한 · 반올림은 ViewModel 이 값을 넣을 때 한다.</summary>
     [RequireComponent(typeof(Slider))]

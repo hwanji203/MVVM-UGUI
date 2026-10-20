@@ -1,9 +1,9 @@
-using MVVMGUI.Elements.Core;
-using MVVMGUI.Sound;
+using MVVM.UGUI.Elements.Core;
+using MVVM.UGUI.Sound;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 버튼 모양 없이 아무 Graphic 이나 누르면 Command (카드 · 배경 · 그림). Raycast Target 인 Graphic 이 필요하다.

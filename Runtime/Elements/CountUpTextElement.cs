@@ -1,10 +1,10 @@
 using DG.Tweening;
-using MVVMGUI.Binding;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>값이 바뀌면 숫자가 굴러가며 따라간다 (골드 · 점수). 첫 값과 꺼져 있을 때는 바로.</summary>
     [RequireComponent(typeof(TMP_Text))]

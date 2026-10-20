@@ -1,9 +1,9 @@
-using MVVMGUI.Elements.Core;
-using MVVMGUI.Sound;
+using MVVM.UGUI.Elements.Core;
+using MVVM.UGUI.Sound;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>버튼 → Command. Command 의 Active 가 꺼지면 잠긴다. 눌리면 스스로 클릭 소리를 낸다 (DESIGN 3.5).</summary>
     [RequireComponent(typeof(Button))]

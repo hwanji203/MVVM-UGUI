@@ -1,9 +1,9 @@
 using TMPro;
-using MVVMGUI.Sound;
+using MVVM.UGUI.Sound;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 잠기면 모양이 바뀌는 버튼 (옛 LockButtonForm) — 자물쇠 아이콘을 켜고, 글을 "잠김" 으로 바꾼다.

@@ -1,7 +1,7 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 월드 좌표를 화면에서 따라간다 (공 위 HP 바 · 이름표). 값은 월드 위치, 카메라가 움직여도 매 프레임 다시 맞춘다.

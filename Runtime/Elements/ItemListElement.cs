@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using MVVMGUI.Binding;
-using MVVMGUI.Core;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Binding;
+using MVVM.UGUI.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// BindableList 의 항목마다 항목 프리팹 (<see cref="ItemView{TItem}"/>) 을 하나씩 그린다 (인벤토리 · 손패 · 상점 목록).
@@ -26,7 +26,7 @@ namespace MVVMGUI.Elements
 
             if (itemPrefab == null || itemPrefab.ItemType != typeof(TItem))
             {
-                Debug.LogError($"[MVVMGUI] {name}: 항목 프리팹이 ItemView<{typeof(TItem).Name}> 가 아니다 " +
+                Debug.LogError($"[MVVM UGUI] {name}: 항목 프리팹이 ItemView<{typeof(TItem).Name}> 가 아니다 " +
                                $"({(itemPrefab == null ? "비어 있음" : itemPrefab.ItemType.Name)}).", this);
                 return;
             }

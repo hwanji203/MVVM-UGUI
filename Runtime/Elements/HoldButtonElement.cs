@@ -1,10 +1,10 @@
-using MVVMGUI.Elements.Core;
-using MVVMGUI.Sound;
+using MVVM.UGUI.Elements.Core;
+using MVVM.UGUI.Sound;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 길게 눌러야 실행되는 버튼 (삭제 · 포기 확인). 누르는 동안 progressFill 이 차고, 다 차면 Command 실행.

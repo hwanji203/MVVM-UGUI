@@ -1,16 +1,16 @@
 using System.Linq;
-using MVVMGUI.Core;
+using MVVM.UGUI.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace MVVMGUI.Editor
+namespace MVVM.UGUI.Editor
 {
     /// <summary>생성기를 부르는 곳: 프리팹 저장 · 인스펙터 머리의 버튼 · Tools 메뉴, 그리고 컴파일 뒤 이어 채우기.</summary>
     [InitializeOnLoad]
     internal static class ElementGeneratorHooks
     {
-        private const string MenuPath = "Tools/MVVMGUI/선택한 View 의 Element 속성 생성";
+        private const string MenuPath = "Tools/MVVM UGUI/선택한 View 의 Element 속성 생성";
 
         static ElementGeneratorHooks()
         {
@@ -39,7 +39,7 @@ namespace MVVMGUI.Editor
             if (view == null)
                 return;
 
-            if (GUILayout.Button("MVVMGUI · Element 속성 생성"))
+            if (GUILayout.Button("MVVM UGUI · Element 속성 생성"))
                 ElementGenerator.Generate(view);
         }
 

@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>알림 배지. 0 이면 숨기고, max 를 넘으면 "99+" 처럼.</summary>
     public class BadgeElement : VisualElement<int>

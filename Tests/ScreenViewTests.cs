@@ -1,11 +1,11 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using MVVMGUI.Core;
+using MVVM.UGUI.Core;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace MVVMGUI.Tests
+namespace MVVM.UGUI.Tests
 {
     // 열기 · 닫기 연출이 끝나는 때를 테스트가 정한다 (Gate 가 null 이면 바로 끝)
     [ExecuteAlways]

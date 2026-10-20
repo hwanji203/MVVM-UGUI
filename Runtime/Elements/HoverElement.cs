@@ -1,7 +1,7 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine.EventSystems;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 포인터가 올라와 있는지를 ViewModel 에 알린다 → Bindable&lt;bool&gt; (미리보기 · 강조). Raycast Target 인 Graphic 이 필요하다.

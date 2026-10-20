@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 잠깐 떴다 사라지는 알림 ← Signal&lt;string&gt; ("골드가 부족합니다"). 여러 개가 오면 차례로 보여준다.

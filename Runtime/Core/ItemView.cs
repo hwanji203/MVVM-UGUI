@@ -1,11 +1,11 @@
 using System;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Core
+namespace MVVM.UGUI.Core
 {
     /// <summary>
-    /// 목록 (<see cref="MVVMGUI.Elements.ItemListElement"/>) 의 항목 하나를 그리는 View 의 바탕 (제네릭 아님).
+    /// 목록 (<see cref="MVVM.UGUI.Elements.ItemListElement"/>) 의 항목 하나를 그리는 View 의 바탕 (제네릭 아님).
     /// 목록은 이것만 보고 항목을 넣고 뺀다. 항목 View 는 <see cref="ItemView{TItem}"/> 를 상속한다.
     /// </summary>
     public abstract class ItemView : MonoBehaviour

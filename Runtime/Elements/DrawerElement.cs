@@ -1,8 +1,8 @@
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// 서랍처럼 한 방향으로 미끄러져 들어오고 나간다 (옆 메뉴 · 아래 패널). true = 열림.

@@ -1,7 +1,7 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>CanvasGroup 아래 전체를 잠그고 흐리게 (영역을 통째로 못 누르게).</summary>
     [RequireComponent(typeof(CanvasGroup))]

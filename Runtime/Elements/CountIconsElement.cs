@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// N 개 중 앞의 k 개를 켠다 — 하트 3개 중 2개, 별점, 칸 게이지 (에너지 칸 · 탄창).

@@ -1,8 +1,8 @@
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>CanvasGroup 투명도 0~1.</summary>
     [RequireComponent(typeof(CanvasGroup))]

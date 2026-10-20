@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using TMPro;
 using UnityEngine;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>
     /// TMP 글. 프리팹에 적어 둔 원래 글에 <c>{0}</c> 이 있으면 그 자리에 값을 넣는다 (예: "HP {0}").

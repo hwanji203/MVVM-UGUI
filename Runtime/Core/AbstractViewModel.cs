@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MVVMGUI.Core
+namespace MVVM.UGUI.Core
 {
     public abstract class AbstractViewModel : IDisposable
     {

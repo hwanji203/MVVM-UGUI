@@ -2,7 +2,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 
-namespace MVVMGUI.Elements.Core
+namespace MVVM.UGUI.Elements.Core
 {
     /// <summary>트윈이 끝나거나 죽을 때까지 기다린다. token 이 취소되면 트윈을 Kill 한다.</summary>
     internal static class TweenAwait

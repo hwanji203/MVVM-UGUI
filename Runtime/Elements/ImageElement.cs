@@ -1,8 +1,8 @@
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>그림 교체 (카드 그림 · 아이템 아이콘 · 얼굴). null 이면 Image 를 끈다.</summary>
     [RequireComponent(typeof(Image))]

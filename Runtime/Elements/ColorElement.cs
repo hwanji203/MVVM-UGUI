@@ -1,9 +1,9 @@
 using DG.Tweening;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MVVMGUI.Elements
+namespace MVVM.UGUI.Elements
 {
     /// <summary>Graphic (Image · TMP 등) 의 색. duration 0 이면 바로.</summary>
     [RequireComponent(typeof(Graphic))]

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using MVVMGUI.Core;
-using MVVMGUI.Elements.Core;
+using MVVM.UGUI.Core;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
-namespace MVVMGUI.Editor
+namespace MVVM.UGUI.Editor
 {
     /// <summary>View 아래의 Element 를 찾고, 속성 이름을 정하고, 문제를 알린다 (생성기의 읽기 부분).</summary>
     public static class ElementScan
