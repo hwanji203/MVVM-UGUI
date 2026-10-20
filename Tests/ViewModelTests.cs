@@ -33,7 +33,7 @@ namespace MVVMGUI.Tests
         public TestViewModel Created;
         public TestViewModel BoundWith;
 
-        protected override TestViewModel CreateVM() => Created = new TestViewModel();
+        protected override TestViewModel CreateViewModel() => Created = new TestViewModel();
         protected override void Bind(TestViewModel vm) => BoundWith = vm;
     }
 

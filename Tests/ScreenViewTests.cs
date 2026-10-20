@@ -14,7 +14,7 @@ namespace MVVMGUI.Tests
         public UniTaskCompletionSource OpenGate;
         public UniTaskCompletionSource CloseGate;
 
-        protected override TestViewModel CreateVM() => new();
+        protected override TestViewModel CreateViewModel() => new();
 
         protected override UniTask PlayOpen(CancellationToken token) =>
             OpenGate == null ? UniTask.CompletedTask : OpenGate.Task.AttachExternalCancellation(token);
@@ -109,6 +109,32 @@ namespace MVVMGUI.Tests
             _view.CloseGate.TrySetResult();
 
             Assert.IsTrue(_go.activeSelf, "취소된 닫기가 나중에 끄면 안 된다");
+        }
+
+        [Test]
+        public void IsClosing_OnlyDuringCloseAnimation()
+        {
+            _view.OpenAsync().Forget();
+            _view.CloseGate = new UniTaskCompletionSource();
+            Assert.IsFalse(_view.IsClosing);
+
+            _view.CloseAsync().Forget();
+            Assert.IsTrue(_view.IsClosing);
+
+            _view.CloseGate.TrySetResult();
+            Assert.IsFalse(_view.IsClosing);
+        }
+
+        [Test]
+        public void IsClosing_ClearedWhenOpenCancelsClose()
+        {
+            _view.OpenAsync().Forget();
+            _view.CloseGate = new UniTaskCompletionSource();
+            _view.CloseAsync().Forget();
+
+            _view.OpenAsync().Forget();
+
+            Assert.IsFalse(_view.IsClosing);
         }
 
         [Test]

@@ -13,7 +13,7 @@ namespace MVVMGUI.Tests
     {
         [SerializeField] private Element[] generatedElements;
         public Element[] Generated => generatedElements;
-        protected override TestViewModel CreateVM() => new();
+        protected override TestViewModel CreateViewModel() => new();
     }
 
     public class ElementGeneratorTests

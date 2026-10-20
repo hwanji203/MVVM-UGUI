@@ -11,25 +11,21 @@ namespace MVVMGUI.Core
     /// </summary>
     public abstract class ScreenView : MonoBehaviour
     {
-        public Action OnOpen;
-        public Action OnClose;
-
         // 지금 진행 중인 열기 · 닫기 — 새 열기 · 닫기가 오면 이전 것은 취소된다
         private CancellationTokenSource _transition;
 
+        /// <summary>닫기 연출 중. 누가 닫든 (매니저 · 자기 버튼) 켜지고, 꺼지거나 새 열기 · 닫기가 오면 풀린다.</summary>
+        public bool IsClosing { get; private set; }
+
         /// <summary>
-        /// 켜고 → 열기 연출 (<see cref="PlayOpen"/>) 을 기다린 뒤 → OnOpen. 연출 중에 다른 열기 · 닫기가 오면 OnOpen 없이 끝난다.
+        /// 켜고 → 열기 연출 (<see cref="PlayOpen"/>) 을 기다린 뒤 → OnOpen. 켜기 전 vm을 setup하고 켠다.
         /// </summary>
         public async UniTask OpenAsync()
         {
             var token = BeginTransition();
             gameObject.SetActive(true);
 
-            //취소됐을 때 try-catch 문으로 잡으면 코드가 길어지니 취소됐을 때 true를 반환하도록 .SuppressCancellationThrow()를 사용
-            if (await PlayOpen(token).SuppressCancellationThrow())
-                return;
-
-            OnOpen?.Invoke();
+            await PlayOpen(token).SuppressCancellationThrow();
         }
 
         /// <summary>닫기 연출 (<see cref="PlayClose"/>) 을 기다린 뒤 → 끄고 → OnClose. 이미 꺼져 있으면 아무것도 하지 않는다.</summary>
@@ -39,12 +35,15 @@ namespace MVVMGUI.Core
                 return;
 
             var token = BeginTransition();
+            IsClosing = true;
 
+            //취소됐을 때 try-catch 문으로 잡으면 코드가 길어지니 취소됐을 때 true를 반환하도록 .SuppressCancellationThrow()를 사용
+            //취소됐으면 취소시킨 쪽의 BeginTransition 이 이미 IsClosing 을 풀었다
             if (await PlayClose(token).SuppressCancellationThrow())
                 return;
 
+            IsClosing = false;
             gameObject.SetActive(false);
-            OnClose?.Invoke();
         }
 
         /// <summary>열기 연출. 하위 View (PopupView 등) 가 트윈을 돌리고 끝날 때까지 기다리게 한다. token 이 취소되면 멈춘다.</summary>
@@ -56,6 +55,7 @@ namespace MVVMGUI.Core
         private CancellationToken BeginTransition()
         {
             CancelTransition();
+            IsClosing = false;
             //CreateLinkedTokenSource로 인수로 넣은 토큰(게임오브젝트 파괴시 Cancel)이 Cancel될 때 생성한 토큰도 같이 Cancel되도록 생성
             _transition = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
             return _transition.Token;
@@ -67,27 +67,25 @@ namespace MVVMGUI.Core
             _transition?.Dispose();
             _transition = null;
         }
-
+        
         // 하위 View 가 OnDestroy 를 쓰면 override 하고 base.OnDestroy() 를 부른다
         protected virtual void OnDestroy()
         {
             //CreateLinkedTokenSource가 있기 때문에 파괴될 때 이미 Cancel을 부르고 있기는 하지만, 자식이 OnDestroy를 빼먹을 수도 있기 때문에 안전코드
             CancelTransition();
         }
-
-        public Type GetVMType() { throw new NotImplementedException(); }
     }
 
     /// <summary>ViewModel 을 쓰는 화면. T 덕분에 CreateVM · Bind 가 형변환 없이 자기 ViewModel 을 받는다.</summary>
     public abstract class ScreenView<T> : ScreenView where T : AbstractViewModel
     {
-        private T _vm;
+        [SerializeField] internal T vm;
 
         private void Awake()
         {
-            _vm = CreateVM();
+            vm = CreateViewModel();
             Initialize();
-            Bind(_vm);
+            Bind(vm);
             gameObject.SetActive(false);
         }
 
@@ -101,12 +99,12 @@ namespace MVVMGUI.Core
         /// </summary>
         protected virtual void Bind(T vm) { }
 
-        protected abstract T CreateVM();
-
+        protected abstract T CreateViewModel();
+        
         protected override void OnDestroy()
         {
-            _vm?.Dispose();
-            _vm = null;
+            vm?.Dispose();
+            vm = null;
             base.OnDestroy();
         }
     }
