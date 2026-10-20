@@ -149,7 +149,7 @@ namespace MVVMGUI.Editor
                 SaveOrMarkDirty(view);
         }
 
-        private static IEnumerable<ScreenView> Views(GameObject root) => root.GetComponentsInChildren<ScreenView>(true);
+        private static IEnumerable<MonoBehaviour> Views(GameObject root) => ElementScan.ViewsIn(root);
 
         private static void SaveOrMarkDirty(MonoBehaviour view)
         {

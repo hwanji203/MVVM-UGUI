@@ -63,6 +63,23 @@ namespace MVVMGUI.Tests
             CollectionAssert.AreEqual(new Element[] { hp, hiddenElement }, found);
         }
 
+        [Test]
+        public void ItemView_IsView_AndNestedItemTemplateIsBoundary()
+        {
+            Assert.IsTrue(ElementScan.IsView(typeof(TestItemView)));
+
+            var root = Node("Shop");
+            root.AddComponent<TestView>();
+            var title = Node("Title", root.transform).AddComponent<TestValueElement>();
+            var template = Node("ItemTemplate", root.transform);
+            template.AddComponent<TestItemView>();                 // 화면 안에 놓인 항목 템플릿 — 그 아래는 항목 View 의 것
+            var price = Node("Price", template.transform).AddComponent<TestValueElement>();
+
+            CollectionAssert.AreEqual(new Element[] { title }, ElementScan.Collect(root.transform));
+            CollectionAssert.AreEqual(new Element[] { price }, ElementScan.Collect(template.transform));
+            Assert.AreEqual(template.GetComponent<TestItemView>(), ElementScan.FindView(template));
+        }
+
         [TestCase("HpText", "HpText")]
         [TestCase("HP Text", "HPText")]
         [TestCase("hp-bar.fill", "hpbarfill")]

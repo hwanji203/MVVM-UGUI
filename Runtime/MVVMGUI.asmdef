@@ -3,7 +3,8 @@
     "rootNamespace": "MVVMGUI",
     "references": [
         "Unity.TextMeshPro",
-        "UniTask"
+        "UniTask",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

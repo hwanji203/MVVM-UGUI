@@ -12,11 +12,31 @@ namespace MVVMGUI.Editor
     {
         public static bool IsScreenView(Type type) => typeof(ScreenView).IsAssignableFrom(type);
 
-        public static ScreenView FindView(GameObject go) => go.GetComponent<ScreenView>();
+        /// <summary>생성기가 속성을 만들어 주는 View — 화면 (ScreenView) 과 목록 항목 (ItemView).</summary>
+        public static bool IsView(Type type) => IsScreenView(type) || typeof(ItemView).IsAssignableFrom(type);
+
+        public static MonoBehaviour FindView(GameObject go)
+        {
+            var screen = go.GetComponent<ScreenView>();
+            if (screen != null)
+                return screen;
+            var item = go.GetComponent<ItemView>();
+            return item != null ? item : null;
+        }
+
+        /// <summary>root 와 그 아래 (꺼진 것 포함) 의 View 전부.</summary>
+        public static IEnumerable<MonoBehaviour> ViewsIn(GameObject root)
+        {
+            foreach (var behaviour in root.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (behaviour != null && IsView(behaviour.GetType()))
+                    yield return behaviour;
+            }
+        }
 
         /// <summary>
         /// View 오브젝트의 자식 (꺼진 것 포함) 에서 Element 를 계층 순서대로 모은다.
-        /// View 자신에 붙은 Element 는 빼고, 안쪽에 다른 View 가 있으면 그 아래는 그 View 의 것이라 들어가지 않는다.
+        /// View 자신에 붙은 Element 는 빼고, 안쪽에 다른 View (ScreenView · ItemView) 가 있으면 그 아래는 그 View 의 것이라 들어가지 않는다.
         /// </summary>
         public static List<Element> Collect(Transform viewRoot)
         {

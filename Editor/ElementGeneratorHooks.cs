@@ -25,7 +25,7 @@ namespace MVVMGUI.Editor
 
         private static void OnPrefabSaving(GameObject root)
         {
-            foreach (var view in root.GetComponentsInChildren<ScreenView>(true))
+            foreach (var view in ElementScan.ViewsIn(root))
                 ElementGenerator.Generate(view, ElementGenerator.Trigger.PrefabSaving);
         }
 
