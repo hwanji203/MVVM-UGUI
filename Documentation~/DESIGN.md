@@ -348,6 +348,7 @@ public class BattleHudView : ScreenView<BattleHudViewModel>
   - 그 자식에 필드 타입의 컴포넌트가 있어야 한다. 같은 이름이 둘 이상이면 비워 두고 경고, 못 찾은 것도 경고 (끌어다 놓으면 된다).
   - 안쪽에 다른 View (ScreenView · ItemView) 가 붙은 오브젝트는 그 아래까지 그 View 의 것이라 찾지 않는다. 부모 클래스의 private 필드 (PopupView 의 `window` 등) 도 채운다. Undo 된다.
 - 빠진 참조 검사 (`OnValidate` 경고) 는 넣지 않는다 (사용자 10-21).
+- **비워 둬도 되는 필드는 `[Nullable]`** (`MVVM.UGUI.NullableAttribute` + `Editor/NullableDrawer`, 사용자 10-21): 인스펙터에서 이름이 기울임꼴, 툴팁에 "비워 둬도 된다". 어느 직렬화 필드에나 붙고 목록이면 각 요소에 적용. 표시만 한다 — 쓰는 쪽에서 null 을 확인한다 (`closeButton?.Bind(cmd)`).
 - **안 고른 것 — 생성된 partial 속성 (10-14 에 정해 10-18 에 만들었다가 10-21 에 뺌)**: 생성기가 프리팹 저장 때 View 옆에 `<View>.Elements.g.cs` (숨은 참조 배열 + 타입 있는 속성) 를 만들던 방식. 뺀 이유 (사용자): 프리팹이 있어야 속성이 생겨 **코드를 먼저 쓰는 사람은 쓸 수 없고**, 언제 생기는지 (프리팹 모드 저장 · 버튼 · 첫 생성은 컴파일 뒤) 가 애매했다.
   필드 방식의 단점: Element 마다 필드 한 줄, 이름이 안 맞으면 끌어다 놓기, 빠지면 실행 중 `NullReferenceException` 으로 안다. 그보다 앞의 HwanLib 방식 (자식 순서 · 문자열) 은 조용히 깨져서 뺐다 (0.1).
 
