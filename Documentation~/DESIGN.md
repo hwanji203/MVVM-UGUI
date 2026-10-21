@@ -435,7 +435,7 @@ UniTask OpenAsync<TVM>(Action<TVM> setup = null) where TVM : AbstractViewModel;
 void    Close<TVM>()      where TVM : AbstractViewModel;  // 그 VM 타입의 맨 위 인스턴스, = CloseAsync<TVM>().Forget()
 UniTask CloseAsync<TVM>() where TVM : AbstractViewModel;
 
-ScreenManager.Open<ConfirmViewModel>(vm => vm.Setup("저장할까요?", OnYes));
+ScreenManager.Open<ConfirmPopupVM>(vm => vm.Setup("저장할까요?", "되돌릴 수 없어요", OnYes));
 ```
 
 - 여는 쪽은 **View 를 모르고 VM 타입만** 안다 (V → VM → M 한 방향, 1절). 그때마다 넣을 값 (팝업 제목 · 메시지 · 콜백) 은 `setup` 에서 VM 에 넣는다. VM 은 쓰기 가능한 `Bindable` 을 열기보다 `Setup(...)` 메서드 하나로 받는 것을 권장 — 무엇을 넣어야 열리는지가 시그니처에 드러난다.

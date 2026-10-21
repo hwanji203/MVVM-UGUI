@@ -1,6 +1,8 @@
 using System;
+using System.Reflection;
 using MVVM.UGUI.Binding;
 using MVVM.UGUI.Core;
+using MVVM.UGUI.Templates.ConfirmPopup;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -101,6 +103,45 @@ namespace MVVM.UGUI.Tests
             Object.DestroyImmediate(go);
 
             Assert.AreEqual(1, vm.DisposeCount, "파괴될 때 VM 을 Dispose 해야 한다");
+        }
+
+        // ScreenManager 가 열 때마다 setup 직전에 부르는 되돌리기 — internal 이라 리플렉션으로 부른다
+        private static void PrepareOpen(AbstractViewModel vm) =>
+            typeof(AbstractViewModel).GetMethod("PrepareOpen", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(vm, null);
+
+        [Test]
+        public void ConfirmPopupVM_PrepareOpen_ClearsLastSetup()
+        {
+            var vm = new ConfirmPopupVM();
+            int confirms = 0, cancels = 0;
+            vm.Setup("title", "message", () => confirms++, () => cancels++);
+            vm.ConfirmCmd.SetEnabled(false);
+
+            PrepareOpen(vm);
+            vm.ConfirmCmd.Execute();
+            vm.CancelCmd.Execute();
+
+            Assert.IsNull(vm.Title.Value);
+            Assert.IsNull(vm.Message.Value);
+            Assert.AreEqual(0, confirms, "지난번 확인 콜백이 남으면 안 된다");
+            Assert.AreEqual(0, cancels, "지난번 취소 콜백이 남으면 안 된다");
+            Assert.IsTrue(vm.ConfirmCmd.Active.Value, "이번에 잠근 버튼은 다음 열기에서 풀려야 한다");
+        }
+
+        [Test]
+        public void ConfirmPopupVM_Setup_FillsValuesAndCommands()
+        {
+            var vm = new ConfirmPopupVM();
+            int confirms = 0;
+
+            vm.Setup("title", "message", () => confirms++);
+            vm.ConfirmCmd.Execute();
+            vm.CancelCmd.Execute();
+
+            Assert.AreEqual("title", vm.Title.Value);
+            Assert.AreEqual("message", vm.Message.Value);
+            Assert.AreEqual(1, confirms);
         }
     }
 }
