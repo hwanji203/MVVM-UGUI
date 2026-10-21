@@ -19,10 +19,14 @@ namespace MVVM.UGUI.Templates.Popup
 
         protected AbstractPopupVM() => CloseCmd = new Command(Dismiss);
 
+        /// <summary>
+        /// 닫아달라는 요청 보내기, private _closeRequested를 감싸서 함부로 바꿀 수 없게 하기 위해 존재한다. + 쓰기 쉬움
+        /// </summary>
         protected void RequestClose() => _closeRequested.Fire(true);
 
         /// <summary>
-        /// 확인 없이 닫힐 때 (닫기 버튼 · 배경). 기본은 닫기만 — 취소 콜백이 있는 팝업은 덮어써서 부른 뒤 <c>base.Dismiss()</c>.
+        /// 취소, ECS, 뒷배경 클릭 등 취소할 때 사용
+        /// 기본적으로 closeRequest를 실행시키는데 override하여 특정 행동을 한 후 Close를 할 수 있다.
         /// </summary>
         protected virtual void Dismiss() => RequestClose();
 

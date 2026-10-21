@@ -27,7 +27,7 @@ namespace MVVM.UGUI.Templates.Popup
 
         protected override void Bind(T vm)
         {
-            // VM 이 닫기를 요청하면 닫는다. 구독은 풀지 않는다 — VM 과 View 는 같이 버려진다
+            //반환되는 구독 해제를 사용할 필요는 없다. VM과 V는 같이 사라지기 때문.
             vm.CloseRequested.Bind(_ => CloseAsync().Forget());
             closeButton?.Bind(vm.CloseCmd);
             backgroundDim?.Bind(vm.CloseCmd);

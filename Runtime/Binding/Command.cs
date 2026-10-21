@@ -5,6 +5,7 @@ namespace MVVM.UGUI.Binding
     public class Command : IResettable
     {
         private readonly Bindable<bool> _active;
+        //Action이 생성자에서 대입될 경우는 reset할 경우에 이 Action을 사용하도록 한다.
         private readonly Action _initialAction;
         public Action Action { get; set; }
 

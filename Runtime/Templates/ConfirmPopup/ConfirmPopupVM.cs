@@ -35,9 +35,9 @@ namespace MVVM.UGUI.Templates.ConfirmPopup
             RequestClose();
         }
 
-        // 취소 버튼 · 닫기 버튼 · 배경 — 확인 없이 닫히면 모두 취소
         protected override void Dismiss()
         {
+            //이곳에서 쓰이기에 _onCancel을 Command와 분리하였다. _onConfirm은 통일성을 위해
             _onCancel?.Invoke();
             base.Dismiss();
         }
