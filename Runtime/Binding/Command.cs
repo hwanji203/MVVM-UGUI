@@ -5,14 +5,14 @@ namespace MVVM.UGUI.Binding
     public class Command
     {
         private readonly Bindable<bool> _active = new();
-        private Action _action;
+        public Action Action { get; set; }
 
         // 버튼 같은 Element 는 이걸 구독해 눌 수 있는지 그린다
         public IReadOnlyBindable<bool> Active => _active;
 
         public Command(Action command = null, bool active = true)
         {
-            _action = command;
+            Action = command;
             _active.Value = active;
         }
 
@@ -20,12 +20,8 @@ namespace MVVM.UGUI.Binding
         public void Execute()
         {
             if (_active.Value)
-                _action?.Invoke();
+                Action?.Invoke();
         }
-
-        // Bind 는 Awake 에서 한 번이라 Command 객체는 그대로 두고, 열 때마다 바뀌는 동작만 VM 의 Setup 에서 갈아 끼운다
-        public void SetAction(Action command)
-            => _action = command;
 
         public void SetEnabled(bool active)
             => _active.Value = active;
@@ -34,14 +30,14 @@ namespace MVVM.UGUI.Binding
     public class Command<T>
     {
         private readonly Bindable<bool> _active = new();
-        private Action<T> _action;
+        public Action<T> Action { get; set; }
 
         // 버튼 같은 Element 는 이걸 구독해 눌 수 있는지 그린다
         public IReadOnlyBindable<bool> Active => _active;
 
         public Command(Action<T> command = null, bool active = true)
         {
-            _action = command;
+            Action = command;
             _active.Value = active;
         }
 
@@ -49,12 +45,8 @@ namespace MVVM.UGUI.Binding
         public void Execute(T argument)
         {
             if (_active.Value)
-                _action?.Invoke(argument);
+                Action?.Invoke(argument);
         }
-
-        // Command 와 같다 — 객체는 그대로, 동작만 갈아 끼운다
-        public void SetAction(Action<T> command)
-            => _action = command;
 
         public void SetEnabled(bool active)
             => _active.Value = active;

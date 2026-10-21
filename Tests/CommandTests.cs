@@ -30,13 +30,13 @@ namespace MVVM.UGUI.Tests
         }
 
         [Test]
-        public void SetAction_ReplacesAction()
+        public void Action_ReplacesAction()
         {
             var oldRuns = 0;
             var newRuns = 0;
             var command = new Command(() => oldRuns++);
 
-            command.SetAction(() => newRuns++);
+            command.Action = () => newRuns++;
             command.Execute();
 
             Assert.AreEqual(0, oldRuns);
@@ -50,19 +50,19 @@ namespace MVVM.UGUI.Tests
 
             Assert.DoesNotThrow(command.Execute);
 
-            command.SetAction(() => { });
-            command.SetAction(null);
+            command.Action = () => { };
+            command.Action = null;
             Assert.DoesNotThrow(command.Execute);
         }
 
         [Test]
-        public void Generic_SetAction_ReplacesAction()
+        public void Generic_Action_ReplacesAction()
         {
             var received = new List<int>();
             var command = new Command<int>();
 
             command.Execute(1);
-            command.SetAction(received.Add);
+            command.Action = received.Add;
             command.Execute(2);
 
             CollectionAssert.AreEqual(new[] { 2 }, received);

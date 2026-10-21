@@ -37,7 +37,7 @@ namespace MVVM.UGUI.Tests
         {
             Title.Value = title;
             Message.Value = message;
-            Confirm.SetAction(onConfirm);
+            Confirm.Action = onConfirm;
         }
 
         protected override void ResetForOpen()
@@ -45,7 +45,7 @@ namespace MVVM.UGUI.Tests
             ResetCount++;
             Title.Value = null;
             Message.Value = null;
-            Confirm.SetAction(null);
+            Confirm.Action = null;
         }
     }
 

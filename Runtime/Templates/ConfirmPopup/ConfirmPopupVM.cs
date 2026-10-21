@@ -16,16 +16,16 @@ namespace MVVM.UGUI.Templates.ConfirmPopup
         {
             Title.Value = title;
             Message.Value = message;
-            ConfirmCmd.SetAction(onConfirm);
-            CancelCmd.SetAction(onCancel);
+            ConfirmCmd.Action = onConfirm;
+            CancelCmd.Action = onCancel;
         }
 
         protected override void ResetForOpen()
         {
             Title.Value = null;
             Message.Value = null;
-            ConfirmCmd.SetAction(null);
-            CancelCmd.SetAction(null);
+            ConfirmCmd.Action = null;
+            CancelCmd.Action = null;
             ConfirmCmd.SetEnabled(true);
             CancelCmd.SetEnabled(true);
         }
