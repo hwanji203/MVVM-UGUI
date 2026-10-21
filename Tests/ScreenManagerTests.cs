@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
 using MVVM.UGUI.Binding;
 using MVVM.UGUI.Core;
+using MVVM.UGUI.Elements.Popups;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -88,6 +89,18 @@ namespace MVVM.UGUI.Tests
         {
             var view = Spawn(typeof(T).Name).AddComponent<T>();
             view.gameObject.SetActive(true);
+            return view;
+        }
+
+        // 팝업 프리팹 자리 — 창을 채워 둬야 복제본의 PlayOpen 이 돈다 (복제하면 자기 자식 창으로 이어진다)
+        private TestPopupView PopupTemplate()
+        {
+            var view = Template<TestPopupView>();
+            var window = new GameObject("Window").AddComponent<WindowElement>();
+            window.transform.SetParent(view.transform);
+            var so = new SerializedObject(view);
+            so.FindProperty("window").objectReferenceValue = window;
+            so.ApplyModifiedPropertiesWithoutUndo();
             return view;
         }
 
@@ -249,6 +262,61 @@ namespace MVVM.UGUI.Tests
             Assert.AreEqual(2, ReopenVm().ResetCount);
             Assert.IsNull(ReopenVm().Title.Value);
             Assert.IsNull(ReopenVm().Message.Value);
+        }
+
+        // ---------- 팝업 두 개 겹쳐 띄우기 (UI4) ----------
+
+        // 위의 팝업이 자기 닫기 버튼으로 닫혀도 아래 것은 남는다 — VM 마다 따로라 닫기 요청이 섞이지 않는다
+        [Test]
+        public void Popup_TwoStacked_TopClosesItself_BottomStays()
+        {
+            Use(PopupTemplate());
+            _manager.Open<TestPopupViewModel>();
+            _manager.Open<TestPopupViewModel>();
+            var views = Instances<TestPopupView>();   // 형제 순서대로
+            var bottom = views[0];
+            var top = views[1];
+
+            top.BoundWith.CloseCmd.Execute();
+
+            Assert.IsFalse(top.gameObject.activeSelf);
+            Assert.IsTrue(bottom.gameObject.activeSelf);
+            Assert.AreNotSame(top.BoundWith, bottom.BoundWith);
+        }
+
+        [Test]
+        public void Popup_TwoStacked_ManagerClosesTopFirst()
+        {
+            Use(PopupTemplate());
+            _manager.Open<TestPopupViewModel>();
+            _manager.Open<TestPopupViewModel>();
+            var views = Instances<TestPopupView>();
+
+            _manager.Close<TestPopupViewModel>();
+            Assert.IsFalse(views[1].gameObject.activeSelf);
+            Assert.IsTrue(views[0].gameObject.activeSelf);
+
+            _manager.Close<TestPopupViewModel>();
+            Assert.IsFalse(views[0].gameObject.activeSelf);
+        }
+
+        // 확인 콜백이 같은 팝업을 또 열면 — 지금 것은 아직 켜져 있어 새 인스턴스가 위에 열리고, 그 뒤 지금 것만 닫힌다
+        [Test]
+        public void Popup_ConfirmOpensSamePopup_NewOneOnTop_OnlyFirstCloses()
+        {
+            Use(PopupTemplate());
+            _manager.Open<TestPopupViewModel>(vm => vm.OnConfirm = () => _manager.Open<TestPopupViewModel>());
+            var first = Instances<TestPopupView>()[0];
+
+            first.BoundWith.Confirm.Execute();
+
+            var views = Instances<TestPopupView>();
+            Assert.AreEqual(2, views.Length);
+            Assert.AreSame(first, views[0]);
+            Assert.IsFalse(first.gameObject.activeSelf);
+            Assert.IsTrue(views[1].gameObject.activeSelf);
+            Assert.AreEqual(_canvas.transform.childCount - 1, views[1].transform.GetSiblingIndex());
+            Assert.IsNull(views[1].BoundWith.OnConfirm, "새로 연 팝업은 setup 이 없으니 콜백도 없다");
         }
 
         [Test]

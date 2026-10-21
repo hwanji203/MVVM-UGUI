@@ -10,15 +10,15 @@
 | 단계 | 상태 | 내용 | 끝났다고 보는 기준 |
 | --- | --- | --- | --- |
 | P0 | 완료 (10-15, Claude) | 저장소 · `package.json` · asmdef 2개 · README · 이 문서들 | Project_B 에서 패키지 인식, 기존 테스트 통과 |
-| **UI0** | 다음 | 바인딩: `Bindable` · `IReadOnlyBindable` · `Select` · `Combine` · `Command` · `BindableList` · `ViewModel` (`Own`) + 테스트 asmdef | DESIGN 8절의 Bindable · Command · BindableList · ViewModel 테스트 통과 |
+| UI0 | 완료 (10-18 사용자 코어 + 테스트 25개. 10-21 `Command.Action` 속성 · `Reset` / `ResetAll` 추가) | 바인딩: `Bindable` · `IReadOnlyBindable` · `Select` · `Combine` · `Command` · `BindableList` · `ViewModel` (`Own`) + 테스트 asmdef | DESIGN 8절의 Bindable · Command · BindableList · ViewModel 테스트 통과 |
 | UI2 | 완료 (10-20, Claude — 목록은 사용자가 후보에서 고름) | Element 41개 + AssistComponent 3개 + `Signal<T>` · `UISoundSO` · `AudioSourceUISoundSO` (DESIGN 3.3) | EditMode `ElementsTests` 24개 · `SignalTests` 3개 통과 (패키지 테스트 107개 · Project_B EditMode 전체 178개). 트윈 경로는 Play 모드에서 eval 로 확인: 첫 값 즉시 · 트윈 중 새 값은 지금 위치에서 · 꺼지면 목표로 즉시 · 창 열기 `await` · 취소 · 닫다가 다시 열면 이어서. **실제 프리팹에서 눌러 보는 확인은 아직** (UI6 화면과 함께) |
 | UI3 | 완료 (10-21 생성기를 뺌) | `ScreenView<TVM>` (사용자) + Element 는 `[SerializeField]` 필드 + 에디터 "이름으로 채우기" (Claude 10-21). 10-18 의 생성기 (partial `.g.cs`) 는 10-21 에 뺐다 | `ElementAutoFillTests` 통과 |
-| UI4 | 진행 중 (10-21: `AbstractPopupView` · `AbstractPopupVM` (VM 이 닫기 요청) · `ConfirmPopup` · 열 때마다 되돌리기, 패키지 테스트 129개 통과. 남은 것: 배경 클릭 닫기 테스트 · 팝업 프리팹으로 겹쳐 띄우기 · 에디터에서 눈으로 확인) | `ScreenManager` (`Open<TVM>(setup)` · `OpenAsync` · 닫기 · 스택 · 여러 개) · `PopupView` | 팝업 열기 · 닫기 · 배경 클릭 닫기 · 두 개 겹쳐 띄우기 |
-| UI5 | 완료 (10-20, Claude) | `ItemListElement` (제네릭 `Bind<TItem>`) + `ItemView<TItem>`, 생성기가 ItemView 도 다룸 (DESIGN 3.7) | 항목 추가 · 삭제 · 교체 · 재사용 · 타입 틀림 · 생성기 경계 테스트 통과 |
+| **UI4** | 테스트 완료 (10-21) — **남은 것: 에디터에서 눈으로 확인** (실제 ConfirmPopup 프리팹의 창 · 배경 연출, 버튼 · 배경 클릭, 사용자) | `ScreenManager` (`Open<TVM>(setup)` · `OpenAsync` · 닫기 · 스택 · 여러 개) · `AbstractPopupView` + `AbstractPopupVM` (VM 이 닫기 요청) · `ConfirmPopup` · 열 때마다 되돌리기 (`ResetForOpen`) | 팝업 열기 · 닫기 · 배경 클릭 닫기 · 두 개 겹쳐 띄우기 — EditMode 로 확인 (`PopupViewTests` 8개 · `ScreenManagerTests` 의 `Popup_` 3개: 위의 것이 스스로 닫혀도 아래는 남음 · 매니저 닫기는 위부터 · 확인 콜백이 같은 팝업을 또 열면 새 것이 위에 열리고 처음 것만 닫힘). 트윈은 Play 모드가 아니라 건너뛴다 |
+| UI5 | 완료 (10-20, Claude) | `ItemListElement` (제네릭 `Bind<TItem>`) + `ItemView<TItem>` (DESIGN 3.7). 처음엔 생성기가 ItemView 도 다뤘는데 생성기는 10-21 에 뺐다 | 항목 추가 · 삭제 · 교체 · 재사용 · 타입 틀림 테스트 통과 (생성기 경계 테스트는 생성기와 함께 뺌) |
 | UI6 | | 실제 화면 하나로 검증 | Apes: 사용자가 정한 화면 (10-18: Element 와 함께 Apes 에서). Project_B: 전투 HUD 는 틀이 갖춰진 뒤 `[?]` |
 
 어디서 하나 (사용자 10-18 → 10-20 바꿈): **UI0 테스트 · UI2 · UI3 · UI4 · UI5 = 이 저장소 (Project_B 로 확인)**, UI6 화면 = Apes.
-UI0 테스트: `Tests/` (asmdef `MVVM.UGUI.Tests`, Editor 전용, `UNITY_INCLUDE_TESTS`) 25개 — Project_B 에서 통과 (10-18). 실행은 Project_B 의 `ProjectEditor.Testing.TestCli` (eval) 또는 Test Runner.
+패키지 테스트: `Tests/` (asmdef `MVVM.UGUI.Tests`, Editor 전용, `UNITY_INCLUDE_TESTS`) 134개 — Project_B 에디터에서 통과 (10-21. 10-18 에는 25개). 실행은 Test Runner, Project_B 의 `ProjectEditor.Testing.TestCli` (eval), 또는 열린 에디터에 Unity CLI `unity command run_tests --mode editor --filter MVVM.UGUI.Tests --filter_type assembly --project-path <Project_B>` (10-21 Claude 가 씀).
 
 (UI1 은 "DOTween 가져오기" 였고 Project_B · Apes 모두 이미 있다.)
 
