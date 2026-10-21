@@ -4,7 +4,7 @@ UGUI 용 MVVM 틀. 화면 하나 만들 때 반복되는 연결 코드를 0 에 
 
 - `Bindable<T>` — 값이 바뀌면 연결된 화면이 따라간다. 파생 값 (`Select` · `Combine`) 으로 "무엇을 갱신할지" 를 한 번만 선언.
 - `Element` — 재사용 위젯 (Label · Gauge · Button · Slider …). 각 Element 는 `Apply` 만 구현.
-- 생성기 — 프리팹의 Element 를 타입 있는 partial 속성으로 꺼내게 해 준다. 연결 (`Bind`) 은 View 에 손으로 쓴다.
+- 이름으로 채우기 — View 의 `[SerializeField]` Element 필드를 같은 이름의 자식으로 채우는 에디터 버튼. 연결 (`Bind`) 은 View 에 손으로 쓴다.
 
 > 개발 중 (0.x). 설계 `Documentation~/DESIGN.md` · 진행 `Documentation~/ROADMAP.md` · AI 작업 지침 `AGENTS.md`.
 

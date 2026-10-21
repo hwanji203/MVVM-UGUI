@@ -25,7 +25,7 @@ namespace MVVM.UGUI.Core
     /// <summary>
     /// 항목 하나의 View. ScreenView 와 달리 ViewModel (항목) 을 스스로 만들지 않고 목록이 넣어 준다 —
     /// 항목은 목록을 가진 ViewModel 의 것이라 여기서 Dispose 하지 않는다.
-    /// Element 속성은 ScreenView 처럼 생성기가 만든다 (partial).
+    /// Element 는 ScreenView 처럼 [SerializeField] 필드로 들고, 에디터의 "이름으로 채우기" 로 채울 수 있다.
     /// </summary>
     public abstract class ItemView<TItem> : ItemView
     {

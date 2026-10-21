@@ -34,7 +34,7 @@
 | --- | --- | --- |
 | **Model** | 게임 쪽 (전투 · 설정 SO · 이벤트). 틀은 모른다 | 프로젝트 |
 | **ViewModel** | 화면 하나의 상태 (`Bindable`) · 버튼 명령 (`Command`) | **순수 C#** (MonoBehaviour 아님), `IDisposable` |
-| **View** | 프리팹 루트 MonoBehaviour. ViewModel 을 만들고 Element 와 연결. 특수 연출만 코드로 | `ScreenView<TViewModel>` (partial) |
+| **View** | 프리팹 루트 MonoBehaviour. ViewModel 을 만들고 Element 와 연결. 특수 연출만 코드로 | `ScreenView<TViewModel>` |
 | **Element** | 재사용 위젯. 한 타입의 값을 보여주거나 받는다 | MonoBehaviour |
 
 ```
@@ -216,7 +216,7 @@ protected override void Apply(float v) => slider.SetValueWithoutNotify(v);   // 
 ### 3.3 목록 (사용자 10-20 — 후보 59개에서 고름, 구현 Claude)
 
 바탕 (`Elements/Core`): `Element` · `VisualElement<T>` (한 방향) · `FormElement<T>` (양방향, `Write`) · `CommandElement` · `CommandElement<T>` · `SignalElement<T>` · **`TweenValueElement<T>`** (3.4) · `ReadOnlyListElement<T>` · `ListElement<T>` · `ITransitionElement` (창 · 배경의 `PlayOpen` · `PlayClose`).
-값 없이 생성 속성으로 꺼내기만 하는 것 (특수 연출용) 은 `Element` 를 그대로 붙인다.
+값 없이 필드로 들고 쓰기만 하는 것 (특수 연출용) 은 `Element` 를 그대로 붙인다.
 
 **폴더 = namespace (사용자 10-21)** — 표의 갈래대로 `Runtime/Elements/` 아래에 나누고, namespace 는 폴더 경로를 따른다 (`NamespaceTests` 가 검사):
 
@@ -235,7 +235,7 @@ Elements/
 
 - 경계에 걸리면 **View 에서 `Bind` 할 때 넘기는 것**으로 정한다 (Tooltip 은 `string` 이라 Display, Punch 는 한 번 하는 연출이라 Feedback). 예외: BackgroundDim 은 Command 를 받지만 쓰임이 팝업 연출이라 Popups.
 - **폴더 이름은 복수형** (`Commands` · `Inputs` · `Texts` …, .NET 의 `System.Collections` 꼴). 단수 `Command` 면 `MVVM.UGUI.Elements.*` 안의 코드에서 `Command` 가 `Binding.Command` 클래스가 아니라 namespace 로 잡혀 컴파일이 깨진다 (C# 은 바깥 namespace 의 이름을 `using` 보다 먼저 찾는다). `Input` · `Text` 도 Unity 의 `Input` · `UI.Text` 와 같은 함정.
-- 쓰는 쪽 영향: 생성된 `.g.cs` 는 `global::` 전체 이름이라 다시 생성하면 된다. Element 를 상속해 만들 때만 `using` 이 는다.
+- 쓰는 쪽 영향: View 가 Element 필드를 들므로 쓰는 갈래마다 `using` 이 는다 (`using MVVM.UGUI.Elements.Inputs;` 등).
 
 | 갈래 | Element | 묶는 값 | 하는 일 |
 | --- | --- | --- | --- |
@@ -312,69 +312,74 @@ Element 의 연결 바구니는 하나라 `Bind` 를 두 번 부르면 두 번�
 ### 3.7 목록 — `ItemListElement` + `ItemView<TItem>` (사용자 10-20, 구현 Claude)
 
 ```csharp
-public partial class CardItemView : ItemView<CardViewModel>
+public class CardItemView : ItemView<CardViewModel>
 {
-    protected override void Bind(CardViewModel card) { NameText.Bind(card.Name); PlayButton.Bind(card.Play); }
+    [SerializeField] private TextViewElement nameText;
+    [SerializeField] private ButtonElement playButton;
+
+    protected override void Bind(CardViewModel card) { nameText.Bind(card.Name); playButton.Bind(card.Play); }
 }
-HandList.Bind(vm.Hand);   // ItemListElement — 제네릭이 아니고 Bind<TItem> 가 제네릭
+handList.Bind(vm.Hand);   // ItemListElement — 제네릭이 아니고 Bind<TItem> 가 제네릭
 ```
 
 - 제네릭 MonoBehaviour 는 컴포넌트로 붙일 수 없어서 **목록 Element 하나** (`ItemListElement`) 에 제네릭 `Bind<TItem>` 를 두고, 항목 프리팹의 `ItemView<TItem>` 타입은 Bind 할 때 확인한다 (다르면 오류 로그). 안 고른 것: 목록마다 한 줄 하위 클래스 (`CardListElement : ListElement<CardVM>`) — 타입은 컴파일에 잡히지만 목록마다 파일이 는다.
 - 항목 View 는 VM 을 만들지 않고 받는다 — 항목은 목록을 가진 VM 의 것이라 **Dispose 하지 않는다**. 항목은 VM 이 아닌 값 (`int` · struct) 이어도 된다.
 - 만든 항목 View 는 지우지 않고 꺼 두었다가 다시 쓴다 (화면 재사용 5.3 과 같은 이유). 뺄 때 안의 Element 연결을 끊는다. 목록이 바뀌면 보이는 항목을 전부 다시 Bind 한다 — 수백 개면 다시 본다.
-- 생성기는 `ItemView` 도 `ScreenView` 처럼 다룬다 (partial 속성, 화면 프리팹 안에 놓인 항목 템플릿은 경계).
+- "이름으로 채우기" (4.1) 는 `ItemView` 에도 된다. 화면 프리팹 안에 놓인 항목 템플릿은 경계 — 화면 쪽에서는 그 아래를 찾지 않는다.
 - 기존 `ReadOnlyListElement<T>` · `ListElement<T>` 는 ItemView 없이 직접 그리는 목록용으로 남긴다.
 
-## 4. View — 생성된 속성 + 손 연결
+## 4. View — Element 는 `[SerializeField]` 필드, 연결은 손으로
 
-### 4.1 Element 속성 생성 — partial (확정)
+### 4.1 Element 잡기 — 필드 + "이름으로 채우기" (사용자 10-21)
 
 ```csharp
-// BattleHudView.Elements.g.cs — 생성됨, 손대지 않음
-partial class BattleHudView
+public class BattleHudView : ScreenView<BattleHudViewModel>
 {
-    [SerializeField, HideInInspector]
-    private Element[] generatedElements;          // 프리팹에 참조가 저장되는 곳 (사용자 10-18: ScreenView 가 아니라 생성된 파일에)
-
-    private TextViewElement HpText => (TextViewElement)generatedElements[0];
-    private ButtonElement PauseButton => (ButtonElement)generatedElements[1];
+    [SerializeField] private TextViewElement hpText;
+    [SerializeField] private GaugeElement hpGauge;
+    [SerializeField] private ButtonElement pauseButton;
 }
 ```
 
-- 대상: View 오브젝트의 **자식 (꺼진 것 포함) 에 붙은 `Element` 컴포넌트**, 계층 순서. View 자신에 붙은 Element 는 빼고, 안쪽에 다른 `ScreenView` 가 붙은 오브젝트는 그 아래까지 그 View 의 것이라 뺀다.
-- **배열은 생성된 파일에 있다** (사용자 10-18 — ScreenView 에 두면 헷갈린다). 그래서 **처음 한 번은 두 단계**: 파일 쓰기 → 컴파일 → 배열 채우기. 생성기가 기다릴 대상을 `SessionState` 에 적어 두고 `[DidReloadScripts]` 에서 이어 채운다 (프리팹은 디스크의 것을 `LoadPrefabContents` → `SaveAsPrefabAsset`). 그 뒤에는 필드가 있으니 한 번에 끝난다.
-  배열 이름 `generatedElements` 를 바꾸면 프리팹의 참조가 끊긴다.
-- 속성 이름 = 오브젝트 이름에서 C# 에 못 쓰는 글자를 뺀 것 (숫자로 시작하면 `_`, 키워드면 `@`). 이름이 비거나 겹치면 **파일을 건드리지 않고 멈추고** 어느 오브젝트인지 알린다.
-- View 클래스에는 `partial` 만 붙인다 (없으면 멈추고 알림). 생성 파일은 View 스크립트 옆 `<View>.Elements.g.cs`, 타입은 `global::` 전체 이름이라 `using` 이 필요 없다. 제네릭 · 중첩 클래스 View 는 생성하지 않는다.
-- **언제 생성 (확정)**: 프리팹 모드에서 저장할 때 (`PrefabStage.prefabSaving`) · GameObject 인스펙터 머리의 **"MVVM UGUI · Element 속성 생성"** 버튼 · `Tools/MVVM UGUI/선택한 View 의 Element 속성 생성`. 내용이 같으면 파일을 다시 쓰지 않는다. (자동 연결이 없어져 "스크립트 컴파일이 끝날 때" 다시 생성은 뺐다 — 사용자 10-18.)
-- 어긋남: 저장할 때마다 다시 만들므로 배열과 속성은 맞춰진다. 프리팹을 저장하지 않은 채 Element 종류만 바꾸면 실행 중 형변환 예외가 난다 — 그때는 버튼으로 다시 생성. (처음 설계의 `OnValidate` · `Awake` 검사는 생성된 파일이 하위 View 의 같은 이름 메서드와 부딪혀 넣지 않았다 `[세부]`.)
+- View 는 Element 를 보통 `[SerializeField]` 필드로 든다. **코드를 먼저 써도 된다.**
+- **"이름으로 채우기"** (에디터 도구 `ElementAutoFill`, Claude 10-21): GameObject 인스펙터 머리의 **"MVVM UGUI · Element 이름으로 채우기"** 버튼 · `Tools/MVVM UGUI/선택한 View 의 Element 이름으로 채우기`.
+  - **비어 있는** Element 필드만, 같은 이름의 자식 (꺼진 것 · 깊은 것 포함) 으로 채운다. 손으로 넣은 것은 그대로.
+  - 이름은 대소문자 · 띄어쓰기 · `_` · 앞의 `m_` 를 무시하고 비교한다 (`hpText` ↔ `HP Text`).
+  - 그 자식에 필드 타입의 컴포넌트가 있어야 한다. 같은 이름이 둘 이상이면 비워 두고 경고, 못 찾은 것도 경고 (끌어다 놓으면 된다).
+  - 안쪽에 다른 View (ScreenView · ItemView) 가 붙은 오브젝트는 그 아래까지 그 View 의 것이라 찾지 않는다. 부모 클래스의 private 필드 (PopupView 의 `window` 등) 도 채운다. Undo 된다.
+- 빠진 참조 검사 (`OnValidate` 경고) 는 넣지 않는다 (사용자 10-21).
+- **안 고른 것 — 생성된 partial 속성 (10-14 에 정해 10-18 에 만들었다가 10-21 에 뺌)**: 생성기가 프리팹 저장 때 View 옆에 `<View>.Elements.g.cs` (숨은 참조 배열 + 타입 있는 속성) 를 만들던 방식. 뺀 이유 (사용자): 프리팹이 있어야 속성이 생겨 **코드를 먼저 쓰는 사람은 쓸 수 없고**, 언제 생기는지 (프리팹 모드 저장 · 버튼 · 첫 생성은 컴파일 뒤) 가 애매했다.
+  필드 방식의 단점: Element 마다 필드 한 줄, 이름이 안 맞으면 끌어다 놓기, 빠지면 실행 중 `NullReferenceException` 으로 안다. 그보다 앞의 HwanLib 방식 (자식 순서 · 문자열) 은 조용히 깨져서 뺐다 (0.1).
 
 ### 4.2 자동 연결은 없다 (사용자 2026-10-18 — 처음 설계의 `AutoBind` 를 뺐다)
 
 - 처음엔 Element 이름 == ViewModel 멤버 이름이면 생성기가 `AutoBind` 에 연결을 써 주는 안이었다.
 - 뺀 이유: 자동으로 `A ↔ a` 가 묶인 뒤 손으로 `B ↔ a` 를 묶으면, 다른 Element 라 A 의 연결이 끊기지 않아 **A · B 가 둘 다 `a` 를 본다**. 막으려면 이름을 바꾸거나 `Unbind` · 제외 표시가 필요해지고, 연결이 코드에 다 드러나지 않는다.
-- 그래서 **연결은 전부 View 의 `Bind` 에 손으로 쓴다.** 생성기는 Element 를 꺼내는 속성만 만든다 (4.1).
-- ViewModel 쪽 선언도 생성하지 않는다 (그대로).
+- 그래서 **연결은 전부 View 의 `Bind` 에 손으로 쓴다.** ViewModel 쪽 선언도 만들어 주지 않는다.
 
 ### 4.3 손 연결
 
 ```csharp
-public partial class BattleHudView : ScreenView<BattleHudViewModel>
+public class BattleHudView : ScreenView<BattleHudViewModel>
 {
     [SerializeField] private SomeChannelSO battleChannel;
+    [SerializeField] private TextViewElement hpText;
+    [SerializeField] private GaugeElement hpGauge;
+    [SerializeField] private ButtonElement pauseButton;
 
     protected override BattleHudViewModel CreateViewModel() => new(battleChannel);
 
     protected override void Bind(BattleHudViewModel vm)
     {
-        HpText.Bind(vm.HpText);
-        HpGauge.Bind(vm.HpRatio);
-        PauseButton.Bind(vm.PauseButton);
+        hpText.Bind(vm.HpText);
+        hpGauge.Bind(vm.HpRatio);
+        pauseButton.Bind(vm.PauseButton);
     }
 }
 ```
 
-- `ScreenView` 는 `Awake` 에서 `CreateViewModel` → `Bind`, `OnDestroy` 에서 ViewModel `Dispose`. (지금 코드 이름은 `AbstractView<T>` · `CreateVM` — 이름과 모양은 사용자가 정하는 중 `[?]`.)
+- `ScreenView<T>` 는 `Awake` 에서 `CreateViewModel` → `Initialize` → `Bind(vm)` → 끄기, `OnDestroy` 에서 ViewModel `Dispose`.
+- 하위 View 는 VM 을 **`Bind(T vm)` 의 인자로만** 받는다 (사용자 10-21 — 잠깐 `Bind()` 로 바꿨다가 되돌림). 필드 (`viewModel`, 10-21 이름 바꿈) 는 `internal` 이라 매니저만 쓴다 — 프로젝트 어셈블리의 화면에는 보이지 않는다.
 - 같은 Element 를 다시 묶으면 이전 연결은 끊긴다 (Element 의 `Bind`).
 - ViewModel 이 필요한 SO 는 View 가 `[SerializeField]` 로 들고 생성자로 넘긴다.
 - 2026-10-19 사용자: VM 은 그대로 View 가 만든다 (같은 날 잠깐 정했던 "Registry 항목이 VM 을 만든다" 는 되돌림, 5.1). 여는 쪽이 넣을 값은 `ScreenManager.Open` 의 `setup` 으로 VM 에 넣는다.
@@ -442,15 +447,13 @@ ScreenManager.Open<ConfirmViewModel>(vm => vm.Setup("저장할까요?", OnYes));
 ### 5.2 `PopupView`
 
 ```csharp
-public partial class SettingView : PopupView<SettingViewModel>
-{
-    protected override Element Window => PopupWindow;          // 생성된 속성
-    protected override Element Background => BackgroundDim;
-    protected override Element[] CloseButtons => new Element[] { CloseBtn, BackgroundDim };
-}
+public class SettingView : PopupView<SettingViewModel> { … }   // window · closeButton · backgroundDim 은 PopupView 의 [SerializeField]
 ```
 
-창 크기 · 배경 페이드 · `CanvasGroup` 입력 막기 · 닫힘 완료 알림. 일시정지 중에도 돌아야 하므로 트윈은 `SetUpdate(true)`.
+- **사용자 10-21 구현 (이름은 `AbstractPopupView<T>`):** `WindowElement window` · `ButtonElement closeButton` · `BackgroundDimElement backgroundDim` 을 `[SerializeField]` 로 든다 ("이름으로 채우기" 로 채워짐). `Initialize` 에서 루트 `CanvasGroup`, `Bind` 에서 닫기 Command 하나 (`CloseAsync().Forget()`) 를 버튼 · 배경에 묶는다.
+  `PlayOpen` · `PlayClose` 는 창 · 배경 연출을 `UniTask.WhenAll` 로 함께 기다리고, 열고 닫는 동안 `SetClickable(false)` (`interactable` · `blocksRaycasts` 둘 다 — 포인터를 직접 받는 Element 까지 막으려고). 열기가 취소되면 다시 켜지 않는다.
+- 하위 팝업이 `Initialize` · `Bind(vm)` 를 덮으면 **`base` 를 불러야 한다** (안 부르면 닫기 연결 · CanvasGroup 이 빠진다). 빼먹을 수 없게 하는 안 (`private protected` 틀 단계) 은 Claude 가 냈고 사용자는 지금 방식을 골랐다.
+- 스케치 (10-14) 의 "닫힘 완료 알림" 은 `await CloseAsync()` 로 대신 (10-19). `SetUpdate(true)` 는 Element 가 한다.
 
 ### 5.3 같은 화면 여러 개
 
@@ -469,7 +472,7 @@ MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae
  ├ package.json · README.md · AGENTS.md
  ├ Documentation~/  DESIGN.md (이 문서) · ROADMAP.md · HANDOFF-APES.md   (~ 로 끝나는 폴더는 Unity 가 무시)
  ├ Runtime/  (asmdef MVVM.UGUI)          Binding · Core (ViewModel · ScreenView · ItemView · ScreenManager) · Elements · AssistComponent · Sound (UISoundSO) · Templates (PopupView)
- ├ Editor/   (asmdef MVVM.UGUI.Editor)   Element 속성 생성기
+ ├ Editor/   (asmdef MVVM.UGUI.Editor)   Element 이름으로 채우기
  └ Tests/    (asmdef MVVM.UGUI.Tests)    EditMode 테스트
 ```
 
@@ -496,7 +499,7 @@ MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae
 - `Bindable`: 같은 값 무시 · 구독 즉시 현재 값 · `notifyNow: false` · 해제 뒤 알림 없음 · `Combine` 재계산.
 - `Command`: `Active` false 면 무시. `BindableList`: 알림 순서 · 인덱스.
 - `ViewModel`: `Own` 한 것이 `Dispose` 에서 풀린다.
-- 생성기: 같은 이름 · 중첩 View 경계 · 생성 코드의 타입 = 실제 컴포넌트 · 내용이 같으면 다시 쓰지 않음.
+- 이름으로 채우기 (`ElementAutoFillTests`): 이름 비교 · 꺼진 · 깊은 자식 · 채워진 것은 그대로 · 안쪽 View 경계 · 같은 이름 둘 · 타입 틀림 · 부모 클래스 private 필드.
 - `Signal`: 같은 값도 매번 · Bind 때 안 부름 · 해제. Element (`ElementsTests`): 값 반영 · 양방향 쓰기와 되먹임 없음 · 다시 묶으면 이전 원본 끊김 · 원본 둘 · 목록 재사용 · 창 · 배경 · 꺼진 Signal 무시.
   트윈 경로는 플레이 중에만 돌아 EditMode 테스트에선 늘 "바로" 경로다 — 트윈은 플레이 모드에서 확인 (ROADMAP UI2).
 
