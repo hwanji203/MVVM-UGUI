@@ -30,10 +30,8 @@ namespace MVVM.UGUI.Tests
     [ExecuteAlways]
     public class TestView : ScreenView<TestViewModel>
     {
-        public TestViewModel Created;
         public TestViewModel BoundWith;
 
-        protected override TestViewModel CreateViewModel() => Created = new TestViewModel();
         protected override void Bind(TestViewModel vm) => BoundWith = vm;
     }
 
@@ -94,10 +92,9 @@ namespace MVVM.UGUI.Tests
         {
             var go = new GameObject("TestView");
             var view = go.AddComponent<TestView>();
-            var vm = view.Created;
+            var vm = view.BoundWith;
 
-            Assert.IsNotNull(vm, "Awake 에서 CreateVM 이 불려야 한다");
-            Assert.AreSame(vm, view.BoundWith, "만든 VM 으로 Bind 해야 한다");
+            Assert.IsNotNull(vm, "Awake 에서 만든 VM 으로 Bind 해야 한다");
 
             Object.DestroyImmediate(go);
 

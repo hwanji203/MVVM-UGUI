@@ -357,32 +357,41 @@ public class BattleHudView : ScreenView<BattleHudViewModel>
 - 뺀 이유: 자동으로 `A ↔ a` 가 묶인 뒤 손으로 `B ↔ a` 를 묶으면, 다른 Element 라 A 의 연결이 끊기지 않아 **A · B 가 둘 다 `a` 를 본다**. 막으려면 이름을 바꾸거나 `Unbind` · 제외 표시가 필요해지고, 연결이 코드에 다 드러나지 않는다.
 - 그래서 **연결은 전부 View 의 `Bind` 에 손으로 쓴다.** ViewModel 쪽 선언도 만들어 주지 않는다.
 
-### 4.3 손 연결
+### 4.3 손 연결 · VM 만들기 (사용자 10-21)
 
 ```csharp
+[Serializable]                                   // VM 이 SO 를 직접 직렬화해 든다 — 인스펙터의 View 아래에 보인다
+public class BattleHudViewModel : AbstractViewModel, IInitializable
+{
+    [SerializeField] private BattleChannelSO battleChannel;
+    public readonly Bindable<string> HpText = new();
+
+    public void Initialize() { /* 여기서 battleChannel 구독 — 생성자에서는 아직 null */ }
+}
+
 public class BattleHudView : ScreenView<BattleHudViewModel>
 {
-    [SerializeField] private SomeChannelSO battleChannel;
     [SerializeField] private TextViewElement hpText;
-    [SerializeField] private GaugeElement hpGauge;
     [SerializeField] private ButtonElement pauseButton;
-
-    protected override BattleHudViewModel CreateViewModel() => new(battleChannel);
 
     protected override void Bind(BattleHudViewModel vm)
     {
         hpText.Bind(vm.HpText);
-        hpGauge.Bind(vm.HpRatio);
         pauseButton.Bind(vm.PauseButton);
     }
 }
 ```
 
-- `ScreenView<T>` 는 `Awake` 에서 `CreateViewModel` → `Initialize` → `Bind(vm)` → 끄기, `OnDestroy` 에서 ViewModel `Dispose`.
-- 하위 View 는 VM 을 **`Bind(T vm)` 의 인자로만** 받는다 (사용자 10-21 — 잠깐 `Bind()` 로 바꿨다가 되돌림). 필드 (`viewModel`, 10-21 이름 바꿈) 는 `internal` 이라 매니저만 쓴다 — 프로젝트 어셈블리의 화면에는 보이지 않는다.
+- **VM 은 `ScreenView<T>` 의 직렬화 필드** `[SerializeField] internal T viewModel = new T();` (`T : AbstractViewModel, new()`). `CreateViewModel` 은 없앴다 (사용자 10-21).
+  VM 에 `[Serializable]` 을 붙이면 Unity 가 프리팹에 저장된 값으로 만들고 (필드 초기화 `new T()` 는 역직렬화 전에 돌아 덮지 않는다), 안 붙이면 `new T()` 그대로. 복제 (`Instantiate`) 마다 VM 도 따로 생긴다 — `SerializedViewModelTests` 로 확인.
+- **VM 이 쓰는 SO · 이벤트 채널은 VM 의 `[SerializeField]`** (사용자 10-21 — View 가 들고 생성자로 넘기던 것 대신). 지킬 것:
+  - VM 에 **`[Serializable]`** 이 없으면 SO 칸이 안 생기고 오류도 안 난다.
+  - **생성자에서 구독하지 않는다** — 역직렬화는 생성자 다음에 필드를 채우고, 에디터도 직렬화하며 생성자를 부른다. 구독은 **`IInitializable.Initialize()`** (선택, `Core/IInitializable`) 에서.
+  - `Bindable` 은 `[Serializable]` 이 아니라 직렬화에서 빠진다 — VM 상태가 프리팹에 섞이지 않는다.
+- `Awake` 순서: View `Initialize()` → VM 이 `IInitializable` 이면 `Initialize()` → `Bind(viewModel)` (**abstract**, 사용자 10-21) → 끄기. `OnDestroy` 에서 VM `Dispose`.
+- 하위 View 는 VM 을 **`Bind(T vm)` 의 인자로만** 받는다 (잠깐 `Bind()` 로 바꿨다가 되돌림). 필드는 `internal` 이라 매니저만 쓴다.
 - 같은 Element 를 다시 묶으면 이전 연결은 끊긴다 (Element 의 `Bind`).
-- ViewModel 이 필요한 SO 는 View 가 `[SerializeField]` 로 들고 생성자로 넘긴다.
-- 2026-10-19 사용자: VM 은 그대로 View 가 만든다 (같은 날 잠깐 정했던 "Registry 항목이 VM 을 만든다" 는 되돌림, 5.1). 여는 쪽이 넣을 값은 `ScreenManager.Open` 의 `setup` 으로 VM 에 넣는다.
+- 여는 쪽이 넣을 값은 `ScreenManager.Open` 의 `setup` 으로 VM 에 넣는다 (10-19). `Open` · `OpenAsync` 의 `TVM` 에도 `new()` 제약.
 
 ## 5. 화면 열기 · 닫기 (확정)
 
@@ -426,7 +435,7 @@ ScreenManager.Open<ConfirmViewModel>(vm => vm.Setup("저장할까요?", OnYes));
 ```
 
 - 여는 쪽은 **View 를 모르고 VM 타입만** 안다 (V → VM → M 한 방향, 1절). 그때마다 넣을 값 (팝업 제목 · 메시지 · 콜백) 은 `setup` 에서 VM 에 넣는다. VM 은 쓰기 가능한 `Bindable` 을 열기보다 `Setup(...)` 메서드 하나로 받는 것을 권장 — 무엇을 넣어야 열리는지가 시그니처에 드러난다.
-- 순서: 쉬는 (꺼진) 인스턴스를 고르거나 없으면 `Instantiate` (→ `Awake` 가 `CreateVM` → `Initialize` → `Bind` → 끄기) → 열린 순서 맨 뒤로 · `SetAsLastSibling()` → **`setup(vm)`** → `ScreenView.OpenAsync`. 열기 전에 값이 들어가므로 `PlayOpen` 도 새 값을 본다.
+- 순서: 쉬는 (꺼진) 인스턴스를 고르거나 없으면 `Instantiate` (→ `Awake` 가 `Initialize` → `Bind` → 끄기) → 열린 순서 맨 뒤로 · `SetAsLastSibling()` → **`setup(vm)`** → `ScreenView.OpenAsync`. 열기 전에 값이 들어가므로 `PlayOpen` 도 새 값을 본다.
 - **VM 을 돌려주지 않는다.** 여는 쪽이 VM 을 들고 있다가 닫힌 뒤 (재사용이면 다음에 열린 다른 용도의) VM 에 값을 넣는 버그를 막는다. 키 (`int` 핸들) 로 특정 인스턴스를 닫는 안도 봤지만, 화면은 보통 자기 버튼으로 닫혀 필요 없다고 봄 (사용자 10-19). 밖에서 특정 인스턴스를 닫아야 하는 화면이 생기면 그때 핸들을 돌려준다 (`void` → 값 반환은 기존 호출을 깨지 않는다). 열린 동안 바뀌는 값은 여는 쪽이 아니라 VM 이 이벤트 · Model 을 구독한다.
 - `void` 와 `UniTask` 를 반환 타입만 달리 오버로딩할 수 없어 (CS0111) 이름을 나눈다 — C# 관례대로 `Async`.
 - VM 타입 하나에 프리팹 하나. 같은 VM 을 쓰는 프리팹이 둘이면 구분할 수 없다 (시작할 때 경고).

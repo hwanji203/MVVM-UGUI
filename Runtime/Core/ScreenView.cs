@@ -77,15 +77,19 @@ namespace MVVM.UGUI.Core
     }
 
     /// <summary>ViewModel 을 쓰는 화면. T 덕분에 CreateVM · Bind 가 형변환 없이 자기 ViewModel 을 받는다.</summary>
-    public abstract class ScreenView<T> : ScreenView where T : AbstractViewModel
+    public abstract class  ScreenView<T> : ScreenView where T : AbstractViewModel, new()
     {
-        [SerializeField] internal T vm;
+        [SerializeField] internal T viewModel = new T();
 
+        /// <summary>
+        /// 중요한 내용이기 때문에 자식에서 구현하지 않는 것을 대비해 Initialize를 따로 만듦.
+        /// </summary>
         private void Awake()
         {
-            vm = CreateViewModel();
             Initialize();
-            Bind(vm);
+            if (viewModel is IInitializable initializable)
+                initializable.Initialize();
+            Bind(viewModel);
             gameObject.SetActive(false);
         }
 
@@ -97,14 +101,12 @@ namespace MVVM.UGUI.Core
         /// <summary>
         /// 여기서 vm에 있는 Bindable들을 Bind한다.
         /// </summary>
-        protected virtual void Bind(T vm) { }
+        protected abstract void Bind(T vm);
 
-        protected abstract T CreateViewModel();
-        
         protected override void OnDestroy()
         {
-            vm?.Dispose();
-            vm = null;
+            viewModel?.Dispose();
+            viewModel = null;
             base.OnDestroy();
         }
     }

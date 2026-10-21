@@ -59,10 +59,10 @@ namespace MVVM.UGUI.Core
             return null;
         }
 
-        public void Open<TVM>(Action<TVM> setup = null) where TVM : AbstractViewModel
+        public void Open<TVM>(Action<TVM> setup = null) where TVM : AbstractViewModel, new()
             => OpenAsync(setup).Forget();
                     
-        public async UniTask OpenAsync<TVM>(Action<TVM> setup = null) where TVM : AbstractViewModel
+        public async UniTask OpenAsync<TVM>(Action<TVM> setup = null) where TVM : AbstractViewModel, new()
         {
             Type vmType = typeof(TVM);
             //Pool에서 생성했던 해당 타입의 UI를 찾기, 만약 없다면 풀을 생성하기, 근데 해당 타입의 프리팹이 없으면 Error
@@ -103,7 +103,8 @@ namespace MVVM.UGUI.Core
             return topView;
         }
 
-        private async UniTask OpenScreenAsync<TVM>(Type type, ViewSlot viewSlot, Action<TVM> setup) where TVM : AbstractViewModel
+        private async UniTask OpenScreenAsync<TVM>(Type type, ViewSlot viewSlot, Action<TVM> setup) 
+            where TVM : AbstractViewModel, new()
         {
             List<ScreenView> viewPool = viewSlot.ViewPool;
             
@@ -121,11 +122,11 @@ namespace MVVM.UGUI.Core
             
             //setup 시키고 Open
             if (setup != null)
-                setup(targetView.vm);
+                setup(targetView.viewModel);
             await targetView.OpenAsync();
         }
 
-        private bool TryCreateViewPool<TVM>(Type vmType, out ViewSlot viewSlot) where TVM : AbstractViewModel
+        private bool TryCreateViewPool<TVM>(Type vmType, out ViewSlot viewSlot) where TVM : AbstractViewModel, new()
         {
             viewSlot = null;
             foreach (var prefab in screenViewPrefabs)

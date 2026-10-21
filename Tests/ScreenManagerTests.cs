@@ -16,7 +16,7 @@ namespace MVVM.UGUI.Tests
     [ExecuteAlways]
     public class OtherTestView : ScreenView<OtherTestViewModel>
     {
-        protected override OtherTestViewModel CreateViewModel() => new();
+        protected override void Bind(OtherTestViewModel vm) { }
     }
 
     public class ScreenManagerTests
@@ -95,7 +95,7 @@ namespace MVVM.UGUI.Tests
                 shownAtSetup = Instances<TestView>()[0].gameObject.activeSelf;
             });
 
-            Assert.AreSame(Instances<TestView>()[0].Created, got);
+            Assert.AreSame(Instances<TestView>()[0].BoundWith, got, "그 인스턴스의 VM 으로 setup 해야 한다");
             Assert.IsFalse(shownAtSetup, "setup 은 켜기 전에 불려야 한다");
         }
 

@@ -19,11 +19,11 @@ namespace MVVM.UGUI.Tests
         public TestCommandElement CloseButton => closeButton;
         public TestValueElement MissingText => missingText;
 
-        protected override TestViewModel CreateViewModel() => new();
+        protected override void Bind(TestViewModel vm) { }
     }
 
     // PopupView 처럼 부모 클래스의 private 필드
-    public abstract class FillBaseView<T> : ScreenView<T> where T : AbstractViewModel
+    public abstract class FillBaseView<T> : ScreenView<T> where T : AbstractViewModel, new()
     {
         [SerializeField] private TestCommandElement baseButton;
         public TestCommandElement BaseButton => baseButton;
@@ -31,7 +31,7 @@ namespace MVVM.UGUI.Tests
 
     public class FillDerivedView : FillBaseView<TestViewModel>
     {
-        protected override TestViewModel CreateViewModel() => new();
+        protected override void Bind(TestViewModel vm) { }
     }
 
     public class ElementAutoFillTests

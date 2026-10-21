@@ -14,7 +14,7 @@ namespace MVVM.UGUI.Tests
         public UniTaskCompletionSource OpenGate;
         public UniTaskCompletionSource CloseGate;
 
-        protected override TestViewModel CreateViewModel() => new();
+        protected override void Bind(TestViewModel vm) { }
 
         protected override UniTask PlayOpen(CancellationToken token) =>
             OpenGate == null ? UniTask.CompletedTask : OpenGate.Task.AttachExternalCancellation(token);
