@@ -1,4 +1,5 @@
 ﻿using System;
+using MVVM.UGUI.Binding;
 
 namespace MVVM.UGUI.Core
 {
@@ -19,5 +20,12 @@ namespace MVVM.UGUI.Core
 
         // ScreenManager 만 부른다 — 하위 VM 은 어느 어셈블리에 있든 protected override 로 쓴다
         internal void PrepareOpen() => ResetForOpen();
+
+        /// <summary>ResetForOpen 에서 바인딩을 만든 직후 상태로 한 번에 — <c>ResetAll(Title, ConfirmCmd, …)</c>.</summary>
+        protected static void ResetAll(params IResettable[] items)
+        {
+            foreach (var item in items)
+                item.Reset();
+        }
     }
 }

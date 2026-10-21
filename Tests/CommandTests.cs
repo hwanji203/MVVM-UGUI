@@ -68,6 +68,41 @@ namespace MVVM.UGUI.Tests
             CollectionAssert.AreEqual(new[] { 2 }, received);
         }
 
+        // Reset = 만든 직후로 — 생성자의 동작 · 켜짐
+        [Test]
+        public void Reset_RestoresConstructorActionAndActive()
+        {
+            int first = 0, later = 0;
+            var command = new Command(() => first++, active: false);
+            var received = new List<bool>();
+            command.Active.Bind(received.Add);
+            command.Action = () => later++;
+            command.SetEnabled(true);
+
+            command.Reset();
+            command.SetEnabled(true);
+            command.Execute();
+
+            Assert.AreEqual(1, first);
+            Assert.AreEqual(0, later);
+            CollectionAssert.AreEqual(new[] { false, true, false, true }, received);
+        }
+
+        [Test]
+        public void Generic_Reset_RestoresConstructorActionAndActive()
+        {
+            var received = new List<int>();
+            var command = new Command<int>();
+            command.Action = received.Add;
+            command.SetEnabled(false);
+
+            command.Reset();
+            command.Execute(1);
+
+            Assert.IsTrue(command.Active.Value);
+            CollectionAssert.IsEmpty(received);
+        }
+
         [Test]
         public void Active_ReceivesStateNowAndOnChange()
         {

@@ -97,5 +97,20 @@ namespace MVVM.UGUI.Tests
             Assert.IsTrue(removed);
             Assert.AreEqual(2, calls);
         }
+
+        [Test]
+        public void Reset_Empties_NotifiesOnlyWhenNotEmpty()
+        {
+            var cards = new BindableList<string>();
+            var calls = 0;
+            cards.Bind(_ => calls++);
+
+            cards.Reset();
+            cards.Add("A");
+            cards.Reset();
+
+            Assert.AreEqual(0, cards.Count);
+            Assert.AreEqual(3, calls, "Bind · Add · 비어 있지 않을 때의 Reset — 빈 목록 Reset 은 알리지 않는다");
+        }
     }
 }

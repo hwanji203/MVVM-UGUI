@@ -84,6 +84,7 @@ public class Bindable<T> : IReadOnlyBindable<T>
     public Bindable(T initial = default);
     public T Value { get; set; }          // 같은 값이면 무시 (EqualityComparer<T>.Default), 다르면 구독자 전부 호출
     public IDisposable Subscribe(Action<T> onChanged, bool notifyNow = true);
+    public void Reset();                  // 생성자 값으로 (IResettable, 2.5) — { Value = … } 객체 초기화는 초기값이 아니다
 }
 ```
 
@@ -128,16 +129,18 @@ public class Command
     public Action Action { get; set; }    // 동작 갈아 끼우기 (null 이면 비움)
     public void Execute();                // Active 가 false 거나 동작이 없으면 무시
     public void SetEnabled(bool active);
+    public void Reset();                  // 생성자의 동작 · 켜짐으로 (IResettable, 2.5)
 }
 ```
 
 인자 없는 입력 (버튼). 값이 있는 입력은 양방향 `Bindable`.
-**동작 교체 (사용자 10-21):** 화면은 다시 쓰이고 `Bind` 는 `Awake` 에서 한 번이라, Command **객체**는 VM 에서 한 번 만들고 (get-only 속성 초기화 · 생성자) 열 때마다 바뀌는 동작은 `Action` 속성으로 넣는다 — 처음엔 `SetAction(Action)` 메서드였고 같은 날 사용자가 속성으로 바꿨다 (`Command<T>` 도 Claude 가 맞춤). 지난 콜백은 `ResetForOpen` 이 비운다 (2.5). 처음 모양 (`public event Action` + 생성자로만 동작) 은 VM 에서 `=` 를 못 해 (CS0070, `event` 는 밖에서 `+=` · `-=` 만) `+=` 로 콜백이 쌓이고, 새 Command 를 만들면 Element 는 옛 객체를 들고 있었다. 안 고른 안 (Claude 추천이었음): Command 는 불변, VM 이 자기 메서드를 넣고 그 메서드가 콜백 필드를 부름 — 콜백마다 VM 필드가 는다. 단점: Command 를 든 쪽 (View · Element) 도 동작을 바꾸거나 지울 수 있다.
+**동작 교체 (사용자 10-21):** 화면은 다시 쓰이고 `Bind` 는 `Awake` 에서 한 번이라, Command **객체**는 VM 에서 한 번 만들고 (get-only 속성 초기화 · 생성자) 열 때마다 바뀌는 동작은 `Action` 속성으로 넣는다 — 처음엔 `SetAction(Action)` 메서드였고 같은 날 사용자가 속성으로 바꿨다 (`Command<T>` 도 Claude 가 맞춤). 지난 동작 · 잠금은 `ResetForOpen` 의 `Reset` 이 생성자 상태로 되돌린다 (2.5). 처음 모양 (`public event Action` + 생성자로만 동작) 은 VM 에서 `=` 를 못 해 (CS0070, `event` 는 밖에서 `+=` · `-=` 만) `+=` 로 콜백이 쌓이고, 새 Command 를 만들면 Element 는 옛 객체를 들고 있었다. 안 고른 안 (Claude 추천이었음): Command 는 불변, VM 이 자기 메서드를 넣고 그 메서드가 콜백 필드를 부름 — 콜백마다 VM 필드가 는다. 단점: Command 를 든 쪽 (View · Element) 도 동작을 바꾸거나 지울 수 있다.
 **`Command<T>` (사용자 10-20)** — 같은 모양에 `Execute(T argument)`. 실행할 때 인자가 필요한 입력 (끌어다 놓은 곳 번호 — `DragElement`). Element 쪽 바탕은 `CommandElement<T>`.
 
 ### 2.4 `BindableList<T>`
 
 한 화면 안에서 개수가 바뀌는 목록 (손패 · 상점 칸). `[세부]` 알림 종류 — `Added(index, item)` · `Removed(index)` · `Replaced` · `Reset` 으로 시작.
+`Reset()` (IResettable, 2.5) 은 빈 목록으로 — 이미 비어 있으면 알리지 않는다 (`Clear()` 는 늘 알린다).
 같은 **화면**을 여러 개 띄우는 것 (5.3) 과는 다른 문제.
 
 ### 2.5 `ViewModel` 기반 (확정 — `Own` 만, `Listen` 같은 이벤트 구독 도우미는 넣지 않는다)
@@ -148,6 +151,7 @@ public abstract class AbstractViewModel : IDisposable
     protected void Own(IDisposable d);       // 오래 사는 것의 구독을 맡긴다
     public virtual void Dispose();           // 맡긴 것 전부 해제
     protected abstract void ResetForOpen();  // 열 때마다 setup 직전 — 지난번 setup 값 되돌리기 (사용자 10-21)
+    protected static void ResetAll(params IResettable[] items);   // ResetForOpen 에서 한 줄로 (사용자 10-21 요청, Claude)
 }
 ```
 
@@ -164,23 +168,20 @@ public abstract class AbstractViewModel : IDisposable
 **열 때마다 되돌리기 — `ResetForOpen` (사용자 10-21):** 닫힌 화면은 파괴되지 않고 다시 쓰이며 (5.1) `Bind` 는 `Awake` 에서 한 번이라, 지난번 `setup` 이 넣은 값 · 콜백이 다음 열기에 남는다. `ScreenManager` 가 열 때마다 `setup` 직전에 (setup 이 없어도) 부른다. 매니저는 `internal PrepareOpen()` 을 거쳐 부르므로 하위 VM 은 어느 어셈블리에 있든 `protected override`.
 
 ```csharp
-public class ConfirmPopupVM : AbstractViewModel
+public class ShopVM : AbstractViewModel
 {
     public Bindable<string> Title { get; } = new();   // get-only — 아래에서 새로 대입하면 컴파일 오류 (CS0200)
-    public Command ConfirmCmd { get; } = new();
+    public Command BuyCmd { get; } = new();
+    public readonly Bindable<int> Gold = new();       // Model 이 채우는 값 — 되돌리지 않는다
 
-    public void Setup(string title, Action onConfirm) { Title.Value = title; ConfirmCmd.Action = onConfirm; }
+    public void Setup(string title, Action onBuy) { Title.Value = title; BuyCmd.Action = onBuy; }
 
-    protected override void ResetForOpen()
-    {
-        Title.Value = null;
-        ConfirmCmd.Action = null;
-        ConfirmCmd.SetEnabled(true);
-    }
+    protected override void ResetForOpen() => ResetAll(Title, BuyCmd);   // 값 · 동작 · 잠금을 만든 직후로
 }
 ```
 
-- **값만 되돌린다** — `Value` · `Action = null` · `SetEnabled` · 목록 `Clear()` · 일반 필드. Bindable · Command 를 새로 만들면 View 는 옛 객체를 들고 있다. 바인딩을 get-only 속성으로 두면 컴파일러가 막아 준다.
+- **값만 되돌린다** — 바인딩은 `IResettable.Reset()` (Bindable = 생성자 값, Command = 생성자의 동작 · 켜짐, BindableList = 빈 목록) 을 `ResetAll(...)` 로 한 번에, 일반 필드는 직접. Bindable · Command 를 새로 만들면 View 는 옛 객체를 들고 있다. 바인딩을 get-only 속성으로 두면 컴파일러가 막아 준다. 파생 값 (`Select` · `Combine`) 은 `IResettable` 이 아니라 넘기면 컴파일 오류 — 원본을 되돌리면 따라온다.
+- **`Reset` 의 기준은 "만든 직후"** (사용자 10-21 요청 "동작 비우기 · 다시 켜기를 매번 쓰지 않게", 구현 Claude). 그래서 생성자에 넣은 값 · 동작이 열 때마다의 기본이 된다 — 예: `new Command(RequestClose)` 는 되돌려도 닫기는 남아 setup 없이 열어도 팝업이 갇히지 않는다. 단점: `new Bindable<int> { Value = 5 }` (객체 초기화) 는 생성 뒤 대입이라 `Reset` 이 0 으로 간다 — 초기값은 생성자로 (`new(5)`).
 - **한 번만 할 일은 여기가 아니다** — 직렬화된 SO 구독 · `Own` · 파생 값은 `IInitializable.Initialize` (Awake, Bind 전, 한 번, 4.3). 여기에 두면 열 때마다 구독이 쌓인다.
 - **Model 이 채우는 값 · 양방향으로 저장되는 값은 되돌리지 않는다** — 다시 열면 Model 이 바뀔 때까지 기본값이 보이거나, 되돌린 값이 저장으로 흘러간다.
 - 단점: abstract 라 되돌릴 게 없는 VM (매니저 밖의 HUD 포함) 도 빈 override 를 쓴다. 목록은 손으로 쓰므로 빠뜨린 필드는 지난 값이 남는다 — 컴파일러로 못 막는다 (Unity 는 C# 9 라 `required` 도 없다).
@@ -538,6 +539,7 @@ MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae
 
 - `Bindable`: 같은 값 무시 · 구독 즉시 현재 값 · `notifyNow: false` · 해제 뒤 알림 없음 · `Combine` 재계산.
 - `Command`: `Active` false 면 무시, `Action` 으로 갈아 끼움 · 동작 없으면 무시. `BindableList`: 알림 순서 · 인덱스.
+- `Reset`: Bindable 은 생성자 값 (객체 초기화 값 아님) · 같으면 안 알림, Command 는 생성자의 동작 · 켜짐, BindableList 는 비울 때만 알림.
 - `ScreenManager`: 다시 열 때 setup 전에 `ResetForOpen` (setup 없어도), 지난 콜백 · 값이 남지 않고 되돌리지 않는 값은 남는다.
 - `ViewModel`: `Own` 한 것이 `Dispose` 에서 풀린다.
 - 이름으로 채우기 (`ElementAutoFillTests`): 이름 비교 · 꺼진 · 깊은 자식 · 채워진 것은 그대로 · 안쪽 View 경계 · 같은 이름 둘 · 타입 틀림 · 부모 클래스 private 필드.

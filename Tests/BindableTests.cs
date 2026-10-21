@@ -66,5 +66,31 @@ namespace MVVM.UGUI.Tests
 
             Assert.DoesNotThrow(() => binding.Dispose());
         }
+
+        // Reset 은 생성자 값으로 — 객체 초기화 ({ Value = … }) 는 초기값이 아니다
+        [Test]
+        public void Reset_ReturnsToConstructorValue_NotifiesOnlyWhenChanged()
+        {
+            var show = new Bindable<bool>(true);
+            var received = new List<bool>();
+            show.Bind(received.Add);
+
+            show.Reset();
+            show.Value = false;
+            show.Reset();
+
+            Assert.IsTrue(show.Value);
+            CollectionAssert.AreEqual(new[] { true, false, true }, received);
+        }
+
+        [Test]
+        public void Reset_IgnoresObjectInitializerValue()
+        {
+            var hp = new Bindable<int> { Value = 5 };
+
+            hp.Reset();
+
+            Assert.AreEqual(0, hp.Value);
+        }
     }
 }

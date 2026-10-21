@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MVVM.UGUI.Binding
 {
-    public class BindableList<T> : IReadOnlyBindableList<T>
+    public class BindableList<T> : IReadOnlyBindableList<T>, IResettable
     {
         private readonly List<T> _value = new();
         
@@ -66,6 +66,13 @@ namespace MVVM.UGUI.Binding
         {
             _value.Clear();
             NotifyList();
+        }
+
+        // 만든 직후 (빈 목록) 로 — 이미 비어 있으면 알리지 않는다
+        public void Reset()
+        {
+            if (_value.Count > 0)
+                Clear();
         }
 
         private void NotifyList() => _valueChanged?.Invoke(_value);

@@ -22,12 +22,7 @@ namespace MVVM.UGUI.Templates.ConfirmPopup
 
         protected override void ResetForOpen()
         {
-            Title.Value = null;
-            Message.Value = null;
-            ConfirmCmd.Action = null;
-            CancelCmd.Action = null;
-            ConfirmCmd.SetEnabled(true);
-            CancelCmd.SetEnabled(true);
+            ResetAll(Title, Message, ConfirmCmd, CancelCmd);
         }
     }
 }

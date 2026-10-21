@@ -3,9 +3,17 @@ using System.Collections.Generic;
 
 namespace MVVM.UGUI.Binding
 {
-    public class Bindable<T> : IReadOnlyBindable<T>
+    public class Bindable<T> : IReadOnlyBindable<T>, IResettable
     {
-        private T _value = default;
+        private readonly T _initial;
+        private T _value;
+
+        // Reset 이 돌아갈 값. 객체 초기화 ({ Value = 1 }) 는 생성 뒤라 초기값이 아니다
+        public Bindable(T initial = default)
+        {
+            _initial = initial;
+            _value = initial;
+        }
 
         public T Value
         {
@@ -28,8 +36,11 @@ namespace MVVM.UGUI.Binding
             onChanged?.Invoke(_value);
             return new UnSubscriber(() => _valueChanged -= onChanged);
         }
+
+        // 생성자로 준 값으로 — 이미 그 값이면 알리지 않는다 (Value 와 같은 규칙)
+        public void Reset() => Value = _initial;
     }
-    
+
     public static class Bindable
     {
         //Bindable을 받아서 그 값이 변경되면 Select하여 값의 변경을 알리는 Bindable을 반환하기

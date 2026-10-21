@@ -43,9 +43,7 @@ namespace MVVM.UGUI.Tests
         protected override void ResetForOpen()
         {
             ResetCount++;
-            Title.Value = null;
-            Message.Value = null;
-            Confirm.Action = null;
+            ResetAll(Title, Message, Confirm);
         }
     }
 
