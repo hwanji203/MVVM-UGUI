@@ -12,8 +12,6 @@ namespace MVVM.UGUI.Core
     {
         internal abstract Type ItemType { get; }
 
-        internal abstract void SetItem(object item);
-
         /// <summary>목록에서 빠질 때 — 안의 Element 연결을 끊어 숨은 항목이 지난 값을 계속 받지 않게 한다.</summary>
         internal virtual void ClearItem()
         {
@@ -34,9 +32,10 @@ namespace MVVM.UGUI.Core
 
         internal override Type ItemType => typeof(TItem);
 
-        internal override void SetItem(object item)
+        // 목록이 ItemView<TItem> 로 형변환해 바로 부른다 — object 를 거치지 않아 struct 항목도 박싱되지 않는다
+        internal void SetItem(TItem item)
         {
-            Item = (TItem)item;
+            Item = item;
             Bind(Item);
         }
 

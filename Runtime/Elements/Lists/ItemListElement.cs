@@ -31,9 +31,10 @@ namespace MVVM.UGUI.Elements.Lists
                 return;
             }
 
-            // 개수가 바뀌면 전부 다시 맞추고, 한 칸만 바뀌면 그 View 만 다시 Bind
+            // 개수가 바뀌면 전부 다시 맞추고, 한 칸만 바뀌면 그 View 만 다시 Bind.
+            // 위에서 타입을 확인했으므로 ItemView<TItem> 형변환은 실패하지 않는다 (박싱 없이 넘기려고 형변환한다)
             Bindings.Add(source.Bind(Sync));
-            Bindings.Add(source.Bind((index, item) => _views[index].SetItem(item)));
+            Bindings.Add(source.Bind((index, item) => ((ItemView<TItem>)_views[index]).SetItem(item)));
         }
 
         public override void Unbind()
@@ -50,7 +51,7 @@ namespace MVVM.UGUI.Elements.Lists
             {
                 var view = i < _views.Count ? _views[i] : Create();
                 view.gameObject.SetActive(true);
-                view.SetItem(items[i]);
+                ((ItemView<TItem>)view).SetItem(items[i]);
             }
 
             for (int i = items.Count; i < _views.Count; i++)

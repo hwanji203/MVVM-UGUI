@@ -323,7 +323,7 @@ handList.Bind(vm.Hand);   // ItemListElement — 제네릭이 아니고 Bind<TIt
 ```
 
 - 제네릭 MonoBehaviour 는 컴포넌트로 붙일 수 없어서 **목록 Element 하나** (`ItemListElement`) 에 제네릭 `Bind<TItem>` 를 두고, 항목 프리팹의 `ItemView<TItem>` 타입은 Bind 할 때 확인한다 (다르면 오류 로그). 안 고른 것: 목록마다 한 줄 하위 클래스 (`CardListElement : ListElement<CardVM>`) — 타입은 컴파일에 잡히지만 목록마다 파일이 는다.
-- 항목 View 는 VM 을 만들지 않고 받는다 — 항목은 목록을 가진 VM 의 것이라 **Dispose 하지 않는다**. 항목은 VM 이 아닌 값 (`int` · struct) 이어도 된다.
+- 항목 View 는 VM 을 만들지 않고 받는다 — 항목은 목록을 가진 VM 의 것이라 **Dispose 하지 않는다**. 항목은 VM 이 아닌 값 (`int` · struct) 이어도 된다 — 목록이 `ItemView<TItem>` 로 형변환해 넘겨 박싱되지 않는다 (Claude 10-21, 처음엔 `SetItem(object)` 를 거쳐 struct 항목이 넘길 때마다 박싱됐다).
 - 만든 항목 View 는 지우지 않고 꺼 두었다가 다시 쓴다 (화면 재사용 5.3 과 같은 이유). 뺄 때 안의 Element 연결을 끊는다. 목록이 바뀌면 보이는 항목을 전부 다시 Bind 한다 — 수백 개면 다시 본다.
 - "이름으로 채우기" (4.1) 는 `ItemView` 에도 된다. 화면 프리팹 안에 놓인 항목 템플릿은 경계 — 화면 쪽에서는 그 아래를 찾지 않는다.
 - 기존 `ReadOnlyListElement<T>` · `ListElement<T>` 는 ItemView 없이 직접 그리는 목록용으로 남긴다.
