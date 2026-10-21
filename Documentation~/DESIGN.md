@@ -218,6 +218,25 @@ protected override void Apply(float v) => slider.SetValueWithoutNotify(v);   // 
 바탕 (`Elements/Core`): `Element` · `VisualElement<T>` (한 방향) · `FormElement<T>` (양방향, `Write`) · `CommandElement` · `CommandElement<T>` · `SignalElement<T>` · **`TweenValueElement<T>`** (3.4) · `ReadOnlyListElement<T>` · `ListElement<T>` · `ITransitionElement` (창 · 배경의 `PlayOpen` · `PlayClose`).
 값 없이 생성 속성으로 꺼내기만 하는 것 (특수 연출용) 은 `Element` 를 그대로 붙인다.
 
+**폴더 = namespace (사용자 10-21)** — 표의 갈래대로 `Runtime/Elements/` 아래에 나누고, namespace 는 폴더 경로를 따른다 (`NamespaceTests` 가 검사):
+
+```
+Elements/
+ ├ Core/              MVVM.UGUI.Elements.Core            바탕
+ ├ Display/           MVVM.UGUI.Elements.Display         Image · Color · GradientColor · Alpha · Visible · Interactable · Switch · Badge · Drawer · LoadingSpinner · WorldFollow · Tooltip
+ │  ├ Texts/          MVVM.UGUI.Elements.Display.Texts   TextView · NumberText · CountUpText · TimerText · TypewriterText
+ │  └ Gauges/         MVVM.UGUI.Elements.Display.Gauges  Gauge · DelayedGauge · Cooldown · CountIcons
+ ├ Inputs/            MVVM.UGUI.Elements.Inputs          Slider · IntSlider · Toggle · ToggleGroup · Tab · Dropdown · InputField · OptionStepper · Hover
+ ├ Commands/          MVVM.UGUI.Elements.Commands        Button · LockButton · HoldButton · ClickArea · Drag
+ ├ Lists/             MVVM.UGUI.Elements.Lists           ItemList
+ ├ Popups/            MVVM.UGUI.Elements.Popups          Window · BackgroundDim
+ └ Feedback/          MVVM.UGUI.Elements.Feedback        Toast · FloatingText · Punch
+```
+
+- 경계에 걸리면 **View 에서 `Bind` 할 때 넘기는 것**으로 정한다 (Tooltip 은 `string` 이라 Display, Punch 는 한 번 하는 연출이라 Feedback). 예외: BackgroundDim 은 Command 를 받지만 쓰임이 팝업 연출이라 Popups.
+- **폴더 이름은 복수형** (`Commands` · `Inputs` · `Texts` …, .NET 의 `System.Collections` 꼴). 단수 `Command` 면 `MVVM.UGUI.Elements.*` 안의 코드에서 `Command` 가 `Binding.Command` 클래스가 아니라 namespace 로 잡혀 컴파일이 깨진다 (C# 은 바깥 namespace 의 이름을 `using` 보다 먼저 찾는다). `Input` · `Text` 도 Unity 의 `Input` · `UI.Text` 와 같은 함정.
+- 쓰는 쪽 영향: 생성된 `.g.cs` 는 `global::` 전체 이름이라 다시 생성하면 된다. Element 를 상속해 만들 때만 `using` 이 는다.
+
 | 갈래 | Element | 묶는 값 | 하는 일 |
 | --- | --- | --- | --- |
 | 보여주기 | `TextViewElement` | `string` | TMP. 원래 글에 `{0}` 이 있으면 포맷으로 |
@@ -454,7 +473,7 @@ MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae
  └ Tests/    (asmdef MVVM.UGUI.Tests)    EditMode 테스트
 ```
 
-- namespace `MVVM.UGUI` — 하위는 asmdef 폴더 기준 (`MVVM.UGUI.Binding` · `MVVM.UGUI.Core` · `MVVM.UGUI.Elements(.Core)` · `MVVM.UGUI.Editor` · `MVVM.UGUI.Tests`, `Runtime` 은 안 붙인다 — ROADMAP "정한 세부").
+- namespace `MVVM.UGUI` — 하위는 asmdef 폴더 기준, **폴더마다 namespace** (`NamespaceTests` 가 검사 — Element 갈래 폴더는 3.3) (`MVVM.UGUI.Binding` · `MVVM.UGUI.Core` · `MVVM.UGUI.Elements(.Core)` · `MVVM.UGUI.Editor` · `MVVM.UGUI.Tests`, `Runtime` 은 안 붙인다 — ROADMAP "정한 세부").
 - **Unity 6000.3 기준** — 더 새 버전에만 있는 API 는 쓰지 않는다.
 - 의존: UGUI (TMP 포함) — `package.json`. **DOTween** 은 선언할 수 없어 프로젝트에 설치되어 있어야 한다.
 

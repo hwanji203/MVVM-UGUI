@@ -1,4 +1,4 @@
-using MVVM.UGUI.Elements;
+using MVVM.UGUI.Elements.Commands;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
