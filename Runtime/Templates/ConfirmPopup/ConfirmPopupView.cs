@@ -1,5 +1,6 @@
 ﻿using MVVM.UGUI.Elements.Commands;
 using MVVM.UGUI.Elements.Display.Texts;
+using MVVM.UGUI.Templates.Popup;
 using UnityEngine;
 
 namespace MVVM.UGUI.Templates.ConfirmPopup

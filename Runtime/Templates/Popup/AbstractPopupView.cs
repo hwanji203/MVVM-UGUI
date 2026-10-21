@@ -7,10 +7,10 @@ using MVVM.UGUI.Elements.Core;
 using MVVM.UGUI.Elements.Popups;
 using UnityEngine;
 
-namespace MVVM.UGUI.Templates
+namespace MVVM.UGUI.Templates.Popup
 {
     [RequireComponent(typeof(CanvasGroup))]
-    public abstract class AbstractPopupView<T> : ScreenView<T> where T : AbstractViewModel, new()
+    public abstract class AbstractPopupView<T> : ScreenView<T> where T : AbstractPopupVM, new()
     {
         //팝업은 일단 열리고 닫힐 때 DOTween이 들어감.
         // 인터페이스 (ITransitionElement) 는 직렬화가 안 돼 바탕 클래스로 받는다 — WindowElement · 옆 패널 등
@@ -27,9 +27,10 @@ namespace MVVM.UGUI.Templates
 
         protected override void Bind(T vm)
         {
-            Command closeCmd = new Command(() => CloseAsync().Forget());
-            closeButton?.Bind(closeCmd);
-            backgroundDim?.Bind(closeCmd);
+            // VM 이 닫기를 요청하면 닫는다. 구독은 풀지 않는다 — VM 과 View 는 같이 버려진다
+            vm.CloseRequested.Bind(_ => CloseAsync().Forget());
+            closeButton?.Bind(vm.CloseCmd);
+            backgroundDim?.Bind(vm.CloseCmd);
         }
 
         protected override async UniTask PlayOpen(CancellationToken token)

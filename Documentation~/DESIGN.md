@@ -488,11 +488,30 @@ ScreenManager.Open<ConfirmPopupVM>(vm => vm.Setup("저장할까요?", "되돌릴
 ### 5.2 `PopupView`
 
 ```csharp
-public class SettingView : PopupView<SettingViewModel> { … }   // window · closeButton · backgroundDim 은 PopupView 의 [SerializeField]
+public class SettingView : AbstractPopupView<SettingVM> { … }   // window · closeButton · backgroundDim 은 바탕의 [SerializeField]
+public class SettingVM : AbstractPopupVM { … }                   // 팝업 VM 은 AbstractPopupVM 을 상속 (제약)
 ```
 
-- **사용자 10-21 구현 (이름은 `AbstractPopupView<T>`):** `TransitionElement window` (10-21: `WindowElement` → 바탕 타입, 옆 패널 등도 들어간다) · `ButtonElement closeButton` · `BackgroundDimElement backgroundDim` 을 `[SerializeField]` 로 든다 ("이름으로 채우기" 로 채워짐). 닫기 버튼 · 배경은 `[Nullable]` — 없어도 된다 (`ConfirmPopupView` 의 `cancelBtn` 도). `Initialize` 에서 루트 `CanvasGroup`, `Bind` 에서 닫기 Command 하나 (`CloseAsync().Forget()`) 를 버튼 · 배경에 묶는다.
+- **사용자 10-21 구현 (이름은 `AbstractPopupView<T>`, `Templates/Popup/`):** `TransitionElement window` (10-21: `WindowElement` → 바탕 타입, 옆 패널 등도 들어간다) · `ButtonElement closeButton` · `BackgroundDimElement backgroundDim` 을 `[SerializeField]` 로 든다 ("이름으로 채우기" 로 채워짐). 닫기 버튼 · 배경은 `[Nullable]` — 없어도 된다 (`ConfirmPopupView` 의 `cancelBtn` 도). `Initialize` 에서 루트 `CanvasGroup`, `Bind` 에서 VM 의 닫기 요청을 구독하고 버튼 · 배경을 VM 의 `CloseCmd` 에 묶는다.
   `PlayOpen` · `PlayClose` 는 창 · 배경 연출을 `UniTask.WhenAll` 로 함께 기다리고 (배경이 없으면 창만), 열고 닫는 동안 `SetClickable(false)` (`interactable` · `blocksRaycasts` 둘 다 — 포인터를 직접 받는 Element 까지 막으려고). 열기가 취소되면 다시 켜지 않는다.
+- **닫기는 VM 이 요청하고 View 가 닫는다 (사용자 10-21, B — 바탕 `AbstractPopupVM` 의 이름 · `CloseCmd` 는 사용자, 나머지 구현은 Claude 에 맡김):**
+
+  ```csharp
+  public abstract class AbstractPopupVM : AbstractViewModel
+  {
+      public IReadOnlySignal<bool> CloseRequested { get; }  // AbstractPopupView 가 받아 CloseAsync (값은 안 씀 — 인자 없는 Signal 이 없다)
+      public Command CloseCmd { get; }                      // 닫기 버튼 · 배경 → Dismiss
+      protected void RequestClose();
+      protected virtual void Dismiss();                     // 확인 없이 닫힐 때. 기본 = RequestClose, 취소 콜백이 있으면 덮어씀
+      protected override void ResetForOpen();               // CloseCmd.Reset — 덮어쓰면 base 를 부른다
+  }
+  ```
+
+  - VM 이 `RequestClose()` 를 부를 때만 닫힌다 — **눌린 뒤 VM 이 결과를 보고** 닫을지 정한다 (검증 실패면 안 부름 · 저장이 끝난 뒤 부름). 누르기 전에 막을 것은 `SetEnabled(false)`.
+  - `ConfirmPopupVM`: 확인 = `onConfirm` → `RequestClose`, 취소 · 닫기 버튼 · 배경 = `Dismiss` (`onCancel` → 닫기). 콜백이 먼저 — 콜백이 같은 팝업을 또 열면 지금 것이 아직 켜져 있어 매니저가 새 인스턴스를 만든다. Command 는 생성자에서 VM 메서드로 만들고 콜백은 필드 — 닫기 버튼 (`CloseCmd`) 도 `onCancel` 을 불러야 해서 콜백을 Command 의 `Action` 에 넣지 않는다.
+  - 구독은 풀지 않는다 — VM 과 View 는 같이 버려진다. 이미 닫힌 팝업의 요청은 `CloseAsync` 가 무시한다.
+  - 단점: 모든 팝업 VM 이 `AbstractPopupVM` 을 상속해야 한다 (제약). 닫기는 VM 이 직접 불러야 해서 빠뜨리면 안 닫힌다 (눌러 보면 바로 보인다).
+  - 안 고른 안: **Element 를 N:N 으로** (사용자 — `Bind(params Command[])` 에 Active 는 AND, `confirmBtn.Bind(vm.ConfirmCmd, CloseCmd)`) — 팝업 밖에서도 쓸 수 있지만 닫을지를 View 가 정해 "눌러 보고 결과에 따라 닫기" 를 못 하고, Element 6개의 바탕 규칙 (다시 묶으면 바뀜 — 목록 재사용이 기댄다) 을 바꾼다. **A. View 가 Command 를 감싸 실행 뒤 닫기** — 같은 한계에 `Active` 를 따로 이어야 한다. C. VM 이 매니저를 들고 닫기 · D. 여는 쪽이 콜백에서 닫기 · E. 버튼에 "부모 팝업 닫기" 컴포넌트 — 의존 방향 · 잊기 쉬움 · 프리팹에 숨은 연결.
 - 하위 팝업이 `Initialize` · `Bind(vm)` 를 덮으면 **`base` 를 불러야 한다** (안 부르면 닫기 연결 · CanvasGroup 이 빠진다). 빼먹을 수 없게 하는 안 (`private protected` 틀 단계) 은 Claude 가 냈고 사용자는 지금 방식을 골랐다.
 - 스케치 (10-14) 의 "닫힘 완료 알림" 은 `await CloseAsync()` 로 대신 (10-19). `SetUpdate(true)` 는 Element 가 한다.
 
@@ -541,6 +560,7 @@ MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae
 - `Command`: `Active` false 면 무시, `Action` 으로 갈아 끼움 · 동작 없으면 무시. `BindableList`: 알림 순서 · 인덱스.
 - `Reset`: Bindable 은 생성자 값 (객체 초기화 값 아님) · 같으면 안 알림, Command 는 생성자의 동작 · 켜짐, BindableList 는 비울 때만 알림.
 - `ScreenManager`: 다시 열 때 setup 전에 `ResetForOpen` (setup 없어도), 지난 콜백 · 값이 남지 않고 되돌리지 않는 값은 남는다.
+- 팝업: VM 이 요청하면 닫힘 · 안 하면 열린 채 · 나중에 요청하면 그때 닫힘 · 닫기 버튼은 `Dismiss` 를 거침 · 닫힌 뒤 요청은 무시. `ConfirmPopupVM`: 버튼마다 콜백 뒤 닫기 요청, setup 없이 열어도 버튼이 닫는다.
 - `ViewModel`: `Own` 한 것이 `Dispose` 에서 풀린다.
 - 이름으로 채우기 (`ElementAutoFillTests`): 이름 비교 · 꺼진 · 깊은 자식 · 채워진 것은 그대로 · 안쪽 View 경계 · 같은 이름 둘 · 타입 틀림 · 부모 클래스 private 필드.
 - `Signal`: 같은 값도 매번 · Bind 때 안 부름 · 해제. Element (`ElementsTests`): 값 반영 · 양방향 쓰기와 되먹임 없음 · 다시 묶으면 이전 원본 끊김 · 원본 둘 · 목록 재사용 · 창 · 배경 · 꺼진 Signal 무시.

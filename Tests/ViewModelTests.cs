@@ -143,5 +143,35 @@ namespace MVVM.UGUI.Tests
             Assert.AreEqual("message", vm.Message.Value);
             Assert.AreEqual(1, confirms);
         }
+
+        // 확인 · 취소 · 닫기 버튼 · 배경은 콜백 뒤에 닫기를 요청한다 (사용자 10-21, B)
+        [Test]
+        public void ConfirmPopupVM_EachButton_RunsCallbackThenRequestsClose()
+        {
+            var vm = new ConfirmPopupVM();
+            var log = new System.Collections.Generic.List<string>();
+            vm.CloseRequested.Bind(_ => log.Add("close"));
+            vm.Setup("title", null, () => log.Add("confirm"), () => log.Add("cancel"));
+
+            vm.ConfirmCmd.Execute();
+            vm.CancelCmd.Execute();
+            vm.CloseCmd.Execute();
+
+            CollectionAssert.AreEqual(new[] { "confirm", "close", "cancel", "close", "cancel", "close" }, log);
+        }
+
+        [Test]
+        public void ConfirmPopupVM_WithoutSetup_ButtonsStillClose()
+        {
+            var vm = new ConfirmPopupVM();
+            int closes = 0;
+            vm.CloseRequested.Bind(_ => closes++);
+
+            PrepareOpen(vm);
+            vm.ConfirmCmd.Execute();
+            vm.CancelCmd.Execute();
+
+            Assert.AreEqual(2, closes, "setup 없이 열어도 팝업이 갇히면 안 된다");
+        }
     }
 }
