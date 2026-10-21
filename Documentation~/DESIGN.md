@@ -141,10 +141,11 @@ public class Command
 ### 2.5 `ViewModel` 기반 (확정 — `Own` 만, `Listen` 같은 이벤트 구독 도우미는 넣지 않는다)
 
 ```csharp
-public abstract class ViewModel : IDisposable
+public abstract class AbstractViewModel : IDisposable
 {
-    protected void Own(IDisposable d);      // 오래 사는 것의 구독을 맡긴다
-    public virtual void Dispose();          // 맡긴 것 전부 해제
+    protected void Own(IDisposable d);       // 오래 사는 것의 구독을 맡긴다
+    public virtual void Dispose();           // 맡긴 것 전부 해제
+    protected abstract void ResetForOpen();  // 열 때마다 setup 직전 — 지난번 setup 값 되돌리기 (사용자 10-21)
 }
 ```
 
@@ -368,6 +369,8 @@ public class BattleHudViewModel : AbstractViewModel, IInitializable
     public readonly Bindable<string> HpText = new();
 
     public void Initialize() { /* 여기서 battleChannel 구독 — 생성자에서는 아직 null */ }
+
+    protected override void ResetForOpen() { }   // 열 때마다 받는 값이 없다 (2.5)
 }
 
 public class BattleHudView : ScreenView<BattleHudViewModel>
@@ -436,12 +439,12 @@ ScreenManager.Open<ConfirmViewModel>(vm => vm.Setup("저장할까요?", OnYes));
 ```
 
 - 여는 쪽은 **View 를 모르고 VM 타입만** 안다 (V → VM → M 한 방향, 1절). 그때마다 넣을 값 (팝업 제목 · 메시지 · 콜백) 은 `setup` 에서 VM 에 넣는다. VM 은 쓰기 가능한 `Bindable` 을 열기보다 `Setup(...)` 메서드 하나로 받는 것을 권장 — 무엇을 넣어야 열리는지가 시그니처에 드러난다.
-- 순서: 쉬는 (꺼진) 인스턴스를 고르거나 없으면 `Instantiate` (→ `Awake` 가 `Initialize` → `Bind` → 끄기) → 열린 순서 맨 뒤로 · `SetAsLastSibling()` → **`setup(vm)`** → `ScreenView.OpenAsync`. 열기 전에 값이 들어가므로 `PlayOpen` 도 새 값을 본다.
+- 순서: 쉬는 (꺼진) 인스턴스를 고르거나 없으면 `Instantiate` (→ `Awake` 가 `Initialize` → `Bind` → 끄기) → 열린 순서 맨 뒤로 · `SetAsLastSibling()` → **VM `ResetForOpen`** (setup 이 없어도, 사용자 10-21) → **`setup(vm)`** → `ScreenView.OpenAsync`. 열기 전에 값이 들어가므로 `PlayOpen` 도 새 값을 본다. 되돌리기 · setup 은 화면이 꺼져 있을 때라 값이 바뀌는 게 보이지 않는다.
 - **VM 을 돌려주지 않는다.** 여는 쪽이 VM 을 들고 있다가 닫힌 뒤 (재사용이면 다음에 열린 다른 용도의) VM 에 값을 넣는 버그를 막는다. 키 (`int` 핸들) 로 특정 인스턴스를 닫는 안도 봤지만, 화면은 보통 자기 버튼으로 닫혀 필요 없다고 봄 (사용자 10-19). 밖에서 특정 인스턴스를 닫아야 하는 화면이 생기면 그때 핸들을 돌려준다 (`void` → 값 반환은 기존 호출을 깨지 않는다). 열린 동안 바뀌는 값은 여는 쪽이 아니라 VM 이 이벤트 · Model 을 구독한다.
 - `void` 와 `UniTask` 를 반환 타입만 달리 오버로딩할 수 없어 (CS0111) 이름을 나눈다 — C# 관례대로 `Async`.
 - VM 타입 하나에 프리팹 하나. 같은 VM 을 쓰는 프리팹이 둘이면 구분할 수 없다 (시작할 때 경고).
 - **닫힌 화면은 파괴하지 않고 꺼 둔 채 다시 쓴다 (사용자 10-19, 5.3).** 그래서:
-  - VM 의 `Setup(...)` 은 **매번 모든 값을 다시 넣는다** — 안 덮은 값 · 지난번 콜백이 남아 불린다. 콜백은 닫힐 때 비우면 더 안전.
+  - 지난번 setup 의 값 · 콜백은 **VM 의 `ResetForOpen` 이 열 때마다 되돌린다** (2.5, 사용자 10-21 — 10-19 의 "Setup 이 매번 모든 값을 다시 넣는다" 규칙을 바꿈). `Setup` 은 이번에 넣을 것만 넣으면 된다.
   - 다시 켠 화면은 Canvas 의 마지막 자식이 아니므로 열 때 `SetAsLastSibling()` — 안 하면 나중에 처음 만든 팝업 아래에 그려진다.
   - View 에 남은 상태 (스크롤 · 토글 · 트윈) 는 `Initialize` · `Bind` 가 `Awake` 에서 한 번뿐이라, 되돌릴 것은 그 화면의 `PlayOpen` 에서.
   - 숨은 동안에도 VM 이 살아 이벤트를 받는다. VM `Dispose` 는 화면이 파괴될 때 (씬 끝).
@@ -508,6 +511,7 @@ MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae
 
 - `Bindable`: 같은 값 무시 · 구독 즉시 현재 값 · `notifyNow: false` · 해제 뒤 알림 없음 · `Combine` 재계산.
 - `Command`: `Active` false 면 무시. `BindableList`: 알림 순서 · 인덱스.
+- `ScreenManager`: 다시 열 때 setup 전에 `ResetForOpen` (setup 없어도), 지난 콜백 · 값이 남지 않고 되돌리지 않는 값은 남는다.
 - `ViewModel`: `Own` 한 것이 `Dispose` 에서 풀린다.
 - 이름으로 채우기 (`ElementAutoFillTests`): 이름 비교 · 꺼진 · 깊은 자식 · 채워진 것은 그대로 · 안쪽 View 경계 · 같은 이름 둘 · 타입 틀림 · 부모 클래스 private 필드.
 - `Signal`: 같은 값도 매번 · Bind 때 안 부름 · 해제. Element (`ElementsTests`): 값 반영 · 양방향 쓰기와 되먹임 없음 · 다시 묶으면 이전 원본 끊김 · 원본 둘 · 목록 재사용 · 창 · 배경 · 꺼진 Signal 무시.

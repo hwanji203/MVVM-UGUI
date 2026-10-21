@@ -25,6 +25,8 @@ namespace MVVM.UGUI.Tests
             DisposeCount++;
             base.Dispose();
         }
+
+        protected override void ResetForOpen() { }
     }
 
     [ExecuteAlways]

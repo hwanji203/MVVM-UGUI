@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
+using MVVM.UGUI.Binding;
 using MVVM.UGUI.Core;
 using NUnit.Framework;
 using UnityEditor;
@@ -11,12 +13,48 @@ using Object = UnityEngine.Object;
 
 namespace MVVM.UGUI.Tests
 {
-    public class OtherTestViewModel : AbstractViewModel { }
+    public class OtherTestViewModel : AbstractViewModel
+    {
+        protected override void ResetForOpen() { }
+    }
 
     [ExecuteAlways]
     public class OtherTestView : ScreenView<OtherTestViewModel>
     {
         protected override void Bind(OtherTestViewModel vm) { }
+    }
+
+    // 열 때마다 받는 값 (Title · Message · Confirm) 과 계속 사는 값 (Gold) 을 함께 든 VM
+    public class ReopenTestViewModel : AbstractViewModel
+    {
+        public readonly Bindable<string> Title = new();
+        public readonly Bindable<string> Message = new();
+        public readonly Command Confirm = new();
+        public readonly Bindable<int> Gold = new();   // Model 이 채우는 값 자리 — ResetForOpen 에서 안 건드린다
+        public int ResetCount;
+
+        public void Setup(string title, string message = null, Action onConfirm = null)
+        {
+            Title.Value = title;
+            Message.Value = message;
+            Confirm.SetAction(onConfirm);
+        }
+
+        protected override void ResetForOpen()
+        {
+            ResetCount++;
+            Title.Value = null;
+            Message.Value = null;
+            Confirm.SetAction(null);
+        }
+    }
+
+    [ExecuteAlways]
+    public class ReopenTestView : ScreenView<ReopenTestViewModel>
+    {
+        public ReopenTestViewModel BoundWith;
+
+        protected override void Bind(ReopenTestViewModel vm) => BoundWith = vm;
     }
 
     public class ScreenManagerTests
@@ -139,6 +177,80 @@ namespace MVVM.UGUI.Tests
             _manager.Open<TestViewModel>();
 
             Assert.AreEqual(_canvas.transform.childCount - 1, reused.transform.GetSiblingIndex());
+        }
+
+        // 열 때마다 setup 직전에 VM 의 ResetForOpen 이 지난번 값을 되돌린다 (사용자 10-21)
+        private ReopenTestViewModel ReopenVm() => Instances<ReopenTestView>()[0].BoundWith;
+
+        [Test]
+        public void Open_FirstTime_ResetsBeforeSetup_SetupValuesSurvive()
+        {
+            Use(Template<ReopenTestView>());
+            int resetsAtSetup = -1;
+
+            _manager.Open<ReopenTestViewModel>(vm =>
+            {
+                resetsAtSetup = vm.ResetCount;
+                vm.Setup("title", "message");
+            });
+
+            Assert.AreEqual(1, resetsAtSetup, "setup 보다 먼저 되돌려야 한다");
+            Assert.AreEqual("title", ReopenVm().Title.Value, "되돌리기가 setup 값을 지우면 안 된다");
+            Assert.AreEqual("message", ReopenVm().Message.Value);
+        }
+
+        [Test]
+        public void Reopen_WithoutCallback_DoesNotRunLastCallback()
+        {
+            Use(Template<ReopenTestView>());
+            int firstRuns = 0;
+            _manager.Open<ReopenTestViewModel>(vm => vm.Setup("first", onConfirm: () => firstRuns++));
+            _manager.Close<ReopenTestViewModel>();
+
+            _manager.Open<ReopenTestViewModel>(vm => vm.Setup("second"));
+            ReopenVm().Confirm.Execute();
+
+            Assert.AreEqual(0, firstRuns);
+        }
+
+        [Test]
+        public void Reopen_SetupSkipsValue_ShowsInitialNotLast()
+        {
+            Use(Template<ReopenTestView>());
+            _manager.Open<ReopenTestViewModel>(vm => vm.Setup("first", "first message"));
+            _manager.Close<ReopenTestViewModel>();
+
+            _manager.Open<ReopenTestViewModel>(vm => vm.Title.Value = "second");
+
+            Assert.AreEqual("second", ReopenVm().Title.Value);
+            Assert.IsNull(ReopenVm().Message.Value);
+        }
+
+        [Test]
+        public void Reopen_KeepsValuesNotReset()
+        {
+            Use(Template<ReopenTestView>());
+            _manager.Open<ReopenTestViewModel>();
+            ReopenVm().Gold.Value = 50;
+            _manager.Close<ReopenTestViewModel>();
+
+            _manager.Open<ReopenTestViewModel>();
+
+            Assert.AreEqual(50, ReopenVm().Gold.Value);
+        }
+
+        [Test]
+        public void Reopen_WithoutSetup_StillResets()
+        {
+            Use(Template<ReopenTestView>());
+            _manager.Open<ReopenTestViewModel>(vm => vm.Setup("first", "message"));
+            _manager.Close<ReopenTestViewModel>();
+
+            _manager.Open<ReopenTestViewModel>();
+
+            Assert.AreEqual(2, ReopenVm().ResetCount);
+            Assert.IsNull(ReopenVm().Title.Value);
+            Assert.IsNull(ReopenVm().Message.Value);
         }
 
         [Test]

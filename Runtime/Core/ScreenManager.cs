@@ -120,9 +120,9 @@ namespace MVVM.UGUI.Core
             //맨 아래로 내려서 보이게 만들기
             targetView.transform.SetAsLastSibling();
             
-            //setup 시키고 Open
-            if (setup != null)
-                setup(targetView.viewModel);
+            //지난번 값을 되돌리고 → setup → Open. setup 이 없어도 되돌린다
+            targetView.viewModel.PrepareOpen();
+            setup?.Invoke(targetView.viewModel);
             await targetView.OpenAsync();
         }
 

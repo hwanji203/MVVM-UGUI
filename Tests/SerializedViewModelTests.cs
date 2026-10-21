@@ -19,6 +19,8 @@ namespace MVVM.UGUI.Tests
         public bool Initialized { get; private set; }
 
         public void Initialize() => Initialized = true;
+
+        protected override void ResetForOpen() { }
     }
 
     [ExecuteAlways]
