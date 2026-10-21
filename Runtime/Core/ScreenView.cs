@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MVVM.UGUI.Elements.Core;
 using UnityEngine;
 
 namespace MVVM.UGUI.Core
@@ -74,6 +75,16 @@ namespace MVVM.UGUI.Core
             //CreateLinkedTokenSource가 있기 때문에 파괴될 때 이미 Cancel을 부르고 있기는 하지만, 자식이 OnDestroy를 빼먹을 수도 있기 때문에 안전코드
             CancelTransition();
         }
+        
+        #region Helper
+
+        protected void SetClickable(CanvasGroup canvasGroup, bool value)
+        {
+            canvasGroup.interactable = value;
+            canvasGroup.blocksRaycasts = value;
+        }
+        
+        #endregion
     }
 
     /// <summary>ViewModel 을 쓰는 화면. T 덕분에 CreateVM · Bind 가 형변환 없이 자기 ViewModel 을 받는다.</summary>

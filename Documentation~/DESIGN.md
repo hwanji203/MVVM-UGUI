@@ -215,7 +215,7 @@ protected override void Apply(float v) => slider.SetValueWithoutNotify(v);   // 
 
 ### 3.3 목록 (사용자 10-20 — 후보 59개에서 고름, 구현 Claude)
 
-바탕 (`Elements/Core`): `Element` · `VisualElement<T>` (한 방향) · `FormElement<T>` (양방향, `Write`) · `CommandElement` · `CommandElement<T>` · `SignalElement<T>` · **`TweenValueElement<T>`** (3.4) · `ReadOnlyListElement<T>` · `ListElement<T>` · `ITransitionElement` (창 · 배경의 `PlayOpen` · `PlayClose`).
+바탕 (`Elements/Core`): `Element` · `VisualElement<T>` (한 방향) · `FormElement<T>` (양방향, `Write`) · `CommandElement` · `CommandElement<T>` · `SignalElement<T>` · **`TweenValueElement<T>`** (3.4) · `ReadOnlyListElement<T>` · `ListElement<T>` · `ITransitionElement` (창 · 배경의 `PlayOpen` · `PlayClose`) · **`TransitionElement`** (그 인터페이스의 추상 바탕 — 인터페이스는 인스펙터 필드로 못 받아서 틀은 이 타입으로 받는다, 사용자 10-21).
 값 없이 필드로 들고 쓰기만 하는 것 (특수 연출용) 은 `Element` 를 그대로 붙인다.
 
 **폴더 = namespace (사용자 10-21)** — 표의 갈래대로 `Runtime/Elements/` 아래에 나누고, namespace 는 폴더 경로를 따른다 (`NamespaceTests` 가 검사):
@@ -460,8 +460,8 @@ ScreenManager.Open<ConfirmViewModel>(vm => vm.Setup("저장할까요?", OnYes));
 public class SettingView : PopupView<SettingViewModel> { … }   // window · closeButton · backgroundDim 은 PopupView 의 [SerializeField]
 ```
 
-- **사용자 10-21 구현 (이름은 `AbstractPopupView<T>`):** `WindowElement window` · `ButtonElement closeButton` · `BackgroundDimElement backgroundDim` 을 `[SerializeField]` 로 든다 ("이름으로 채우기" 로 채워짐). `Initialize` 에서 루트 `CanvasGroup`, `Bind` 에서 닫기 Command 하나 (`CloseAsync().Forget()`) 를 버튼 · 배경에 묶는다.
-  `PlayOpen` · `PlayClose` 는 창 · 배경 연출을 `UniTask.WhenAll` 로 함께 기다리고, 열고 닫는 동안 `SetClickable(false)` (`interactable` · `blocksRaycasts` 둘 다 — 포인터를 직접 받는 Element 까지 막으려고). 열기가 취소되면 다시 켜지 않는다.
+- **사용자 10-21 구현 (이름은 `AbstractPopupView<T>`):** `TransitionElement window` (10-21: `WindowElement` → 바탕 타입, 옆 패널 등도 들어간다) · `ButtonElement closeButton` · `BackgroundDimElement backgroundDim` 을 `[SerializeField]` 로 든다 ("이름으로 채우기" 로 채워짐). 닫기 버튼 · 배경은 `[Nullable]` — 없어도 된다 (`ConfirmPopupView` 의 `cancelBtn` 도). `Initialize` 에서 루트 `CanvasGroup`, `Bind` 에서 닫기 Command 하나 (`CloseAsync().Forget()`) 를 버튼 · 배경에 묶는다.
+  `PlayOpen` · `PlayClose` 는 창 · 배경 연출을 `UniTask.WhenAll` 로 함께 기다리고 (배경이 없으면 창만), 열고 닫는 동안 `SetClickable(false)` (`interactable` · `blocksRaycasts` 둘 다 — 포인터를 직접 받는 Element 까지 막으려고). 열기가 취소되면 다시 켜지 않는다.
 - 하위 팝업이 `Initialize` · `Bind(vm)` 를 덮으면 **`base` 를 불러야 한다** (안 부르면 닫기 연결 · CanvasGroup 이 빠진다). 빼먹을 수 없게 하는 안 (`private protected` 틀 단계) 은 Claude 가 냈고 사용자는 지금 방식을 골랐다.
 - 스케치 (10-14) 의 "닫힘 완료 알림" 은 `await CloseAsync()` 로 대신 (10-19). `SetUpdate(true)` 는 Element 가 한다.
 

@@ -9,9 +9,9 @@ namespace MVVM.UGUI.Elements.Popups
     /// <summary>
     /// 팝업 창의 열기 · 닫기 연출 (옛 DoTweenWindowForm) — 크기 closedScale ↔ 1, CanvasGroup 이 있으면 투명도도.
     /// PopupView 가 PlayOpen · PlayClose 를 기다린다. 닫는 중에 다시 열면 지금 크기에서 이어서 커진다.
-    /// 값을 묶지 않는 Element 다 (생성된 속성으로 꺼내 PopupView 가 쓴다).
+    /// 값을 묶지 않는 Element 다 — AbstractPopupView 의 window 자리 (TransitionElement) 에 넣는다.
     /// </summary>
-    public class WindowElement : Element, ITransitionElement
+    public class WindowElement : TransitionElement
     {
         [SerializeField] private float openDuration = 0.25f;
         [SerializeField] private float closeDuration = 0.2f;
@@ -24,7 +24,7 @@ namespace MVVM.UGUI.Elements.Popups
         // 닫기 연출이 끝까지 간 상태 (처음 포함) — 이때만 열기를 닫힌 모양에서 시작한다
         private bool _atClosed = true;
 
-        public UniTask PlayOpen(CancellationToken token)
+        public override UniTask PlayOpen(CancellationToken token)
         {
             Seq?.Kill();
             if (_atClosed)
@@ -42,7 +42,7 @@ namespace MVVM.UGUI.Elements.Popups
             return TweenAwait.Wait(Seq, token);
         }
 
-        public UniTask PlayClose(CancellationToken token)
+        public override UniTask PlayClose(CancellationToken token)
         {
             Seq?.Kill();
             SetInput(false);
