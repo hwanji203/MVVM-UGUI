@@ -31,18 +31,18 @@ namespace MVVM.UGUI.Elements.Display
 
         private void Follow()
         {
-            var cam = worldCamera != null ? worldCamera : Camera.main;
-            if (cam == null || transform.parent is not RectTransform parent)
+            var cam = worldCamera ? worldCamera : Camera.main;
+            if (!cam || transform.parent is not RectTransform parent)
                 return;
 
             Vector3 screen = cam.WorldToScreenPoint(_worldPosition + worldOffset);
             bool behind = screen.z < 0f;
-            if (hideGroup != null)
+            if (hideGroup)
                 hideGroup.alpha = behind ? 0f : 1f;
             if (behind)
                 return;
 
-            if (_canvas == null)
+            if (!_canvas)
                 _canvas = GetComponentInParent<Canvas>().rootCanvas;
             // Overlay Canvas 는 화면 좌표를 그대로 써서 카메라를 넘기지 않는다
             var uiCamera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera;

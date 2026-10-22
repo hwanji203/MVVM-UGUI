@@ -73,7 +73,7 @@ namespace MVVM.UGUI.Tests
         public void TearDown()
         {
             foreach (var go in _spawned)
-                if (go != null) Object.DestroyImmediate(go);
+                if (go) Object.DestroyImmediate(go);
             _spawned.Clear();
         }
 
@@ -383,7 +383,7 @@ namespace MVVM.UGUI.Tests
             Assert.IsTrue(IsDone(allClosed));
         }
 
-        // 화면이 자기 버튼으로 스스로 닫는 중이어도 매니저는 그 화면을 건너뛴다 (IsClosing)
+        // 화면이 자기 버튼으로 스스로 닫는 중이어도 매니저는 그 화면을 건너뛴다 (닫기를 시작하면 IsOpen false)
         [Test]
         public void Close_WhileViewClosesItself_ClosesNextOne()
         {
@@ -398,10 +398,11 @@ namespace MVVM.UGUI.Tests
             _manager.Close<TestViewModel>();
 
             Assert.IsFalse(bottom.gameObject.activeSelf);
-            Assert.IsTrue(top.IsClosing);
+            Assert.IsFalse(top.IsOpen);
+            Assert.IsTrue(top.gameObject.activeSelf, "닫기 연출 중이라 아직 켜져 있다");
         }
 
-        // 닫기 연출 중인 화면은 다시 고르지 않는다 (사용자 10-20, IsClosing)
+        // 닫기 연출 중인 화면은 다시 닫지 않는다 (사용자 10-20, 10-22 부터 IsOpen 으로 판단)
         [Test]
         public void Close_DuringCloseAnimation_ClosesNextOne()
         {
@@ -420,6 +421,81 @@ namespace MVVM.UGUI.Tests
 
             top.CloseGate.TrySetResult();
             Assert.IsFalse(top.gameObject.activeSelf);
+        }
+
+        // ---------- IsOpen (사용자 10-22 — IsClosing 을 없애고 IsOpen 하나로) ----------
+
+        [Test]
+        public void IsOpen_ByViewModelType()
+        {
+            Use(Template<TestView>(), Template<OtherTestView>());
+            Assert.IsFalse(_manager.IsOpen<TestViewModel>(), "한 번도 열지 않았다");
+
+            _manager.Open<TestViewModel>();
+            Assert.IsTrue(_manager.IsOpen<TestViewModel>());
+            Assert.IsFalse(_manager.IsOpen<OtherTestViewModel>());
+
+            _manager.Close<TestViewModel>();
+            Assert.IsFalse(_manager.IsOpen<TestViewModel>());
+        }
+
+        [Test]
+        public void IsOpen_TrueWhileAnyOfThatTypeIsOpen()
+        {
+            Use(Template<TestView>());
+            _manager.Open<TestViewModel>();
+            _manager.Open<TestViewModel>();
+
+            _manager.Close<TestViewModel>();
+            Assert.IsTrue(_manager.IsOpen<TestViewModel>(), "아래 것이 아직 열려 있다");
+
+            _manager.Close<TestViewModel>();
+            Assert.IsFalse(_manager.IsOpen<TestViewModel>());
+        }
+
+        // 팝업이 자기 버튼으로 닫혀도 매니저가 안다 — 열림이 View 안에 있어 닫힘 알림이 필요 없다
+        [Test]
+        public void IsOpen_FalseAfterPopupClosesItself()
+        {
+            Use(PopupTemplate());
+            _manager.Open<TestPopupViewModel>();
+            var popup = Instances<TestPopupView>()[0];
+
+            popup.BoundWith.CloseCmd.Execute();
+
+            Assert.IsFalse(_manager.IsOpen<TestPopupViewModel>());
+        }
+
+        [Test]
+        public void IsOpen_FalseDuringCloseAnimation()
+        {
+            Use(Template<AnimatedTestView>());
+            _manager.Open<TestViewModel>();
+            var view = Instances<AnimatedTestView>()[0];
+            view.CloseGate = new UniTaskCompletionSource();
+
+            _manager.Close<TestViewModel>();
+
+            Assert.IsFalse(_manager.IsOpen<TestViewModel>());
+            Assert.IsTrue(view.gameObject.activeSelf, "연출은 아직 진행 중");
+        }
+
+        // 닫기 연출 중에 다시 열면 그 인스턴스를 다시 연다 — 두 번째 인스턴스가 생기지 않는다 (ESC 토글)
+        [Test]
+        public void Open_DuringCloseAnimation_ReopensSameInstance()
+        {
+            Use(Template<AnimatedTestView>());
+            _manager.Open<TestViewModel>();
+            var view = Instances<AnimatedTestView>()[0];
+            view.CloseGate = new UniTaskCompletionSource();
+            _manager.Close<TestViewModel>();
+
+            _manager.Open<TestViewModel>();
+            view.CloseGate.TrySetResult();
+
+            Assert.AreEqual(1, Instances<AnimatedTestView>().Length);
+            Assert.IsTrue(view.IsOpen);
+            Assert.IsTrue(view.gameObject.activeSelf, "취소된 닫기가 끄면 안 된다");
         }
 
         // Awake 는 DontDestroyOnLoad 때문에 EditMode 에서 부를 수 없어 경고 메서드만 부른다

@@ -44,7 +44,7 @@ namespace MVVM.UGUI.Elements.Commands
             if (moveToTop)
             {
                 var canvas = GetComponentInParent<Canvas>();
-                if (canvas != null)
+                if (canvas)
                 {
                     rect.SetParent(canvas.rootCanvas.transform, true);
                     rect.SetAsLastSibling();
@@ -73,8 +73,8 @@ namespace MVVM.UGUI.Elements.Commands
                 return;
 
             var hit = eventData.pointerCurrentRaycast.gameObject;
-            var zone = hit != null ? hit.GetComponentInParent<DropZone>() : null;
-            int zoneId = zone != null && zone.isActiveAndEnabled ? zone.ZoneId : NoZone;
+            var zone = hit ? hit.GetComponentInParent<DropZone>() : null;
+            int zoneId = zone && zone.isActiveAndEnabled ? zone.ZoneId : NoZone;
 
             // 먼저 제자리로 — Command 가 목록을 바꿔 이 오브젝트를 다시 쓰거나 끌 수 있다
             Restore();
@@ -94,7 +94,7 @@ namespace MVVM.UGUI.Elements.Commands
             group.blocksRaycasts = true;
 
             var rect = (RectTransform)transform;
-            if (_parent != null && rect.parent != _parent)
+            if (_parent && rect.parent != _parent)
             {
                 // 원래 부모 기준 값으로 되돌리므로 worldPositionStays 는 false
                 rect.SetParent(_parent, false);

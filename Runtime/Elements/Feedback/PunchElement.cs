@@ -21,7 +21,7 @@ namespace MVVM.UGUI.Elements.Feedback
         private Vector3 _baseScale;
         private bool _baseRead;
 
-        private Transform Target => target != null ? target : transform;
+        private Transform Target => target ? target : transform;
 
         public void Bind<T>(IReadOnlyBindable<T> source)
         {

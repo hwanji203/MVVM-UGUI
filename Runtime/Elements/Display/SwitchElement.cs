@@ -13,7 +13,7 @@ namespace MVVM.UGUI.Elements.Display
         {
             for (int i = 0; i < targets.Length; i++)
             {
-                if (targets[i] != null)
+                if (targets[i])
                     targets[i].SetActive(i == index);
             }
         }

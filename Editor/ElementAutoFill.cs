@@ -41,7 +41,7 @@ namespace MVVM.UGUI.Editor
             while (property.NextVisible(enterChildren))
             {
                 enterChildren = false;
-                if (property.propertyType != SerializedPropertyType.ObjectReference || property.objectReferenceValue != null)
+                if (property.propertyType != SerializedPropertyType.ObjectReference || property.objectReferenceValue)
                     continue;
 
                 var field = FindField(view.GetType(), property.name);
@@ -109,7 +109,7 @@ namespace MVVM.UGUI.Editor
                 if (Normalize(child.name) == key)
                 {
                     var component = child.GetComponent(type);
-                    if (component != null)
+                    if (component)
                         found.Add(component);
                 }
 
@@ -121,7 +121,7 @@ namespace MVVM.UGUI.Editor
         {
             foreach (var component in go.GetComponents<MonoBehaviour>())
             {
-                if (component != null && IsView(component))
+                if (component && IsView(component))
                     return true;
             }
             return false;

@@ -17,8 +17,8 @@ namespace MVVM.UGUI.Elements.Display
         {
             image.sprite = value;
             if (hideWhenNull)
-                image.enabled = value != null;
-            if (setNativeSize && value != null)
+                image.enabled = value;
+            if (setNativeSize && value)
                 image.SetNativeSize();
         }
 

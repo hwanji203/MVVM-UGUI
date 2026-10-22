@@ -29,7 +29,7 @@ namespace MVVM.UGUI.Elements.Display.Gauges
             for (int i = 0; i < icons.Length; i++)
             {
                 var icon = icons[i];
-                if (icon == null)
+                if (!icon)
                     continue;
 
                 bool on = i < count;

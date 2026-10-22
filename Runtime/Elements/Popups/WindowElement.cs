@@ -63,7 +63,7 @@ namespace MVVM.UGUI.Elements.Popups
         {
             var seq = DOTween.Sequence().SetUpdate(true).SetLink(gameObject);
             seq.Append(transform.DOScale(scale, time).SetEase(curve));
-            if (group != null)
+            if (group)
                 seq.Join(DOTween.To(() => group.alpha, a => group.alpha = a, alpha, time));
             return seq;
         }
@@ -71,13 +71,13 @@ namespace MVVM.UGUI.Elements.Popups
         private void Apply(float scale, float alpha)
         {
             transform.localScale = Vector3.one * scale;
-            if (group != null)
+            if (group)
                 group.alpha = alpha;
         }
 
         private void SetInput(bool enable)
         {
-            if (group == null)
+            if (!group)
                 return;
             group.interactable = enable;
             group.blocksRaycasts = enable;

@@ -41,7 +41,7 @@ namespace MVVM.UGUI.Editor
         private static bool CanFillSelected() => Selection.gameObjects.Any(go => ViewsOn(go).Count > 0);
 
         private static List<MonoBehaviour> ViewsOn(GameObject go) =>
-            go.GetComponents<MonoBehaviour>().Where(c => c != null && ElementAutoFill.IsView(c)).ToList();
+            go.GetComponents<MonoBehaviour>().Where(c => c && ElementAutoFill.IsView(c)).ToList();
 
         private static void FillAndLog(List<MonoBehaviour> views)
         {

@@ -15,9 +15,9 @@ namespace MVVM.UGUI.Elements.Display
 
         protected override void HandleValueChanged(int count)
         {
-            (badge != null ? badge : gameObject).SetActive(count > 0);
+            (badge ? badge : gameObject).SetActive(count > 0);
 
-            if (countText != null && count > 0)
+            if (countText && count > 0)
                 countText.text = count > max ? $"{max}+" : count.ToString();
         }
 

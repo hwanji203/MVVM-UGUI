@@ -443,13 +443,16 @@ public class BattleHudView : ScreenView<BattleHudViewModel>
 - 나눈 이유: `ScreenView<A>` 와 `ScreenView<B>` 는 C# 에서 관계없는 타입이라 "어떤 화면이든" 을 가리킬 공통 타입이 없었다.
 
 ```csharp
-public async UniTask OpenAsync();    // SetActive(true) → await PlayOpen(token)
-public async UniTask CloseAsync();   // await PlayClose(token) → SetActive(false) (이미 꺼져 있으면 아무것도 안 함)
+public bool IsOpen { get; }          // 열기를 시작한 때부터 닫기를 시작할 때까지 true (사용자 10-22)
+public async UniTask OpenAsync();    // IsOpen = true → SetActive(true) → await PlayOpen(token)
+public async UniTask CloseAsync();   // (열려 있지 않으면 아무것도 안 함) IsOpen = false → await PlayClose(token) → SetActive(false)
 protected virtual UniTask PlayOpen(CancellationToken token);    // 하위 View (PopupView) 가 트윈 · 연출을 넣는 자리, 기본은 바로 끝
 protected virtual UniTask PlayClose(CancellationToken token);
 ```
 
 - `Awake` 끝에서 꺼 둔다 — 열기 전까지 숨어 있다.
+- **열림은 `IsOpen` 하나로 본다 (사용자 10-22 — 10-20 의 `IsClosing` 을 없앰).** 닫기를 시작하면 연출 중에도 열려 있지 않다 (`activeSelf` 는 연출이 끝날 때까지 켜져 있다). 그래서 닫는 중에 또 닫으면 아무것도 안 하고, 매니저는 닫히는 화면을 다음 닫기에서 고르지 않으며 다시 열 때는 그 인스턴스를 다시 연다 (5.1). 열림이 View 안에 있어 화면이 스스로 닫혀도 (팝업의 `RequestClose`) 매니저가 따로 알림을 받을 필요가 없다.
+  지킬 것: 화면은 `OpenAsync` · `CloseAsync` (또는 매니저) 로만 열고 닫는다 — 다른 코드가 `SetActive` 로 직접 켜고 끄면 `IsOpen` 과 어긋난다.
 - 연출 중에 다른 `OpenAsync` · `CloseAsync` 가 오면 이전 것은 **취소** (취소된 쪽을 기다리던 `await` 도 풀린다). 파괴되면 (`destroyCancellationToken`) 도 취소.
   하위 View 는 받은 `token` 을 트윈 대기에 넘겨야 취소가 먹힌다.
 - 기다릴 필요가 없으면 `view.OpenAsync().Forget();`. `ScreenManager` 는 `await` 로 순서를 맞출 수 있다 (닫힌 뒤 다음 열기 등).
@@ -463,7 +466,7 @@ protected virtual UniTask PlayClose(CancellationToken token);
 - 열린 순서를 안다 (팝업과 다른 화면을 나누지 않는 목록 하나, 사용자 10-19). **게임 판단은 두지 않는다** — "게임이 끝나면 설정창을 못 연다" 같은 막기는 요청하는 쪽이 게임 상태로 한다 (버튼 VM 의 `Command.SetEnabled` · 프로젝트의 연결 컴포넌트). 패키지는 게임 화면을 모르고, 화면끼리 서로 알면 참조가 엉킨다 (사용자 10-19 지적).
 - **모든 화면은 매니저로 연다 (사용자 10-22 — 처음의 "HUD 처럼 계속 떠 있는 화면은 씬에 두고 매니저 밖에서 다룬다" 를 바꾼다).** HUD 도 프리팹을 목록에 넣고, 시작을 맡은 컴포넌트가 `Open<HudVM>(vm => vm.Setup(model))` 로 연다.
   - 프리팹은 씬 오브젝트를 참조할 수 없어 씬의 Model 은 시작 컴포넌트가 받아 (인스펙터 · DI) setup 으로 넘긴다. VM 은 `Setup` 에서 구독하고 `ResetForOpen` · `Dispose` 에서 푼다 (2.5 표).
-  - 대상이 바뀌면 (씬 전환) `CloseAsync` 뒤 `OpenAsync` — 켜진 채 또 `Open` 하면 쉬는 인스턴스가 없어 두 번째 HUD 가 생긴다.
+  - 대상이 바뀌면 (씬 전환) `CloseAsync` 뒤 `OpenAsync` — 열린 채 또 `Open` 하면 쉬는 인스턴스가 없어 두 번째 HUD 가 생긴다 (`IsOpen<HudVM>()` 로 먼저 확인할 수 있다).
   - 열 때 `SetAsLastSibling` 이라 HUD 를 먼저 열면 나중에 연 팝업이 위에 그려진다.
   - 씬에 직접 두면 `ScreenView<T>` 가 `Awake` 끝에서 꺼 버리고 (꺼 둔 채 저장하면 켜는 순간 `Awake` 가 돌아 다시 꺼진다) `ResetForOpen` 도 불리지 않는다 — Apes UI6 (PHASE-033 · 034) 에서 확인.
 
@@ -474,12 +477,15 @@ void    Open<TVM>(Action<TVM> setup = null)      where TVM : AbstractViewModel; 
 UniTask OpenAsync<TVM>(Action<TVM> setup = null) where TVM : AbstractViewModel;
 void    Close<TVM>()      where TVM : AbstractViewModel;  // 그 VM 타입의 맨 위 인스턴스, = CloseAsync<TVM>().Forget()
 UniTask CloseAsync<TVM>() where TVM : AbstractViewModel;
+bool    IsOpen<TVM>()     where TVM : AbstractViewModel;  // 그 VM 타입이 하나라도 열려 있나 (사용자 10-22). 한 번도 연 적 없으면 false
 
 ScreenManager.Open<ConfirmPopupVM>(vm => vm.Setup("저장할까요?", "되돌릴 수 없어요", OnYes));
 ```
 
+- `IsOpen<TVM>()` 은 토글 (ESC 로 설정 열기 · 닫기) 과 "이미 떠 있으면 다시 열지 않기" 에 쓴다. 처음엔 없어서 Apes 의 ESC 컴포넌트가 루트 Canvas 아래에서 View 타입을 직접 찾았다 (PHASE-032).
+
 - 여는 쪽은 **View 를 모르고 VM 타입만** 안다 (V → VM → M 한 방향, 1절). 그때마다 넣을 값 (팝업 제목 · 메시지 · 콜백) 은 `setup` 에서 VM 에 넣는다. VM 은 쓰기 가능한 `Bindable` 을 열기보다 `Setup(...)` 메서드 하나로 받는 것을 권장 — 무엇을 넣어야 열리는지가 시그니처에 드러난다.
-- 순서: 쉬는 (꺼진) 인스턴스를 고르거나 없으면 `Instantiate` (→ `Awake` 가 `Initialize` → `Bind` → 끄기) → 열린 순서 맨 뒤로 · `SetAsLastSibling()` → **VM `ResetForOpen`** (setup 이 없어도, 사용자 10-21) → **`setup(vm)`** → `ScreenView.OpenAsync`. 열기 전에 값이 들어가므로 `PlayOpen` 도 새 값을 본다. 되돌리기 · setup 은 화면이 꺼져 있을 때라 값이 바뀌는 게 보이지 않는다.
+- 순서: 쉬는 (열려 있지 않은 — 꺼졌거나 닫기 연출 중인) 인스턴스를 고르거나 없으면 `Instantiate` (→ `Awake` 가 `Initialize` → `Bind` → 끄기) → 열린 순서 맨 뒤로 · `SetAsLastSibling()` → **VM `ResetForOpen`** (setup 이 없어도, 사용자 10-21) → **`setup(vm)`** → `ScreenView.OpenAsync`. 열기 전에 값이 들어가므로 `PlayOpen` 도 새 값을 본다. 되돌리기 · setup 은 보통 화면이 꺼져 있을 때라 값이 바뀌는 게 보이지 않는다 — 닫기 연출 중인 인스턴스를 다시 열 때만 (10-22) 줄어들던 창의 값이 바뀌는 게 보일 수 있다 (단점, 사용자가 꺼진 것 먼저 고르기는 넣지 않음).
 - **VM 을 돌려주지 않는다.** 여는 쪽이 VM 을 들고 있다가 닫힌 뒤 (재사용이면 다음에 열린 다른 용도의) VM 에 값을 넣는 버그를 막는다. 키 (`int` 핸들) 로 특정 인스턴스를 닫는 안도 봤지만, 화면은 보통 자기 버튼으로 닫혀 필요 없다고 봄 (사용자 10-19). 밖에서 특정 인스턴스를 닫아야 하는 화면이 생기면 그때 핸들을 돌려준다 (`void` → 값 반환은 기존 호출을 깨지 않는다). 열린 동안 바뀌는 값은 여는 쪽이 아니라 VM 이 이벤트 · Model 을 구독한다.
 - `void` 와 `UniTask` 를 반환 타입만 달리 오버로딩할 수 없어 (CS0111) 이름을 나눈다 — C# 관례대로 `Async`.
 - VM 타입 하나에 프리팹 하나. 같은 VM 을 쓰는 프리팹이 둘이면 구분할 수 없다 (시작할 때 경고).
@@ -488,12 +494,12 @@ ScreenManager.Open<ConfirmPopupVM>(vm => vm.Setup("저장할까요?", "되돌릴
   - 다시 켠 화면은 Canvas 의 마지막 자식이 아니므로 열 때 `SetAsLastSibling()` — 안 하면 나중에 처음 만든 팝업 아래에 그려진다.
   - View 에 남은 상태 (스크롤 · 토글 · 트윈) 는 `Initialize` · `Bind` 가 `Awake` 에서 한 번뿐이라, 되돌릴 것은 그 화면의 `PlayOpen` 에서.
   - 숨은 동안에도 VM 이 살아 이벤트를 받는다. VM `Dispose` 는 화면이 파괴될 때 (씬 끝).
-  - 열림 / 쉼은 `activeSelf` 로 본다 — 그래서 매니저에 닫힘 알림 (`OnClose`) 이 필요 없다. 닫기 연출 중인 화면은 켜져 있으니 "열림" 으로 보고 새 열기에 고르지 않는다.
+  - 열림 / 쉼은 `ScreenView.IsOpen` 으로 본다 (5.0) — View 가 스스로 바꾸므로 매니저에 닫힘 알림 (`OnClose`) 이 필요 없다. 닫기 연출 중인 화면은 열려 있지 않으니 새 열기에서 그 인스턴스를 다시 연다 (닫기 연출은 취소, 창은 지금 크기에서 이어서 커진다). 처음엔 `activeSelf` 로 보고 닫기 연출 중인 화면은 "열림" 으로 쳐 새 열기에 고르지 않았는데, 그래서 연출 중에 다시 열면 두 번째 인스턴스가 생겼다 (사용자 10-22 에 바꿈).
 - 닫기는 **VM 타입의 맨 위 인스턴스** (사용자 10-19). 같은 화면이 여러 개 떠 있을 때 그중 특정 하나를 밖에서 닫는 길은 아직 없다 — 화면은 보통 자기 버튼으로 닫힌다.
 - `ScreenView` 의 열기 · 닫기도 같은 규칙으로 `OpenAsync` · `CloseAsync` (사용자 10-19, 5.0).
 - 매니저가 프리팹의 VM 타입을 얻는 길: 처음 열 때 프리팹 목록에서 `prefab is ScreenView<TVM>` 인 것을 찾는다 (사용자 10-20 — 10-19 의 `GetVMType()` 안 대신). `setup` 에는 그 인스턴스의 `vm` (`internal`) 을 넘긴다.
-- **자료구조 (사용자 10-20):** VM 타입 → (프리팹 · 인스턴스 목록). **목록은 보관만** (순서 없음), **열린 순서는 계층 (형제 순서)** 이 든다 — 열 때 `SetAsLastSibling`, 닫기는 그 타입에서 켜진 것 중 `GetSiblingIndex()` 가 가장 큰 것. 닫기 연출 중인 화면 (`ScreenView.IsClosing`, 사용자 10-20 — 매니저의 목록 `_closingViewBuffer` 대신) 은 다음 닫기에서 고르지 않는다. `IsClosing` 은 `CloseAsync` 가 켜고, 끝나서 끄거나 새 열기 · 닫기의 `BeginTransition` 이 푼다 — 화면이 자기 버튼으로 닫는 중이어도 매니저가 안다.
-  안 고른 것: 목록에서 `Remove` → `Add` 로 순서를 맞추기 — 순서가 목록과 계층 두 곳이라 매니저 밖에서 형제 순서를 바꾸면 어긋나고, 타입별 목록으론 타입 상관없는 "맨 위 닫기" 를 못 한다. 단점: 모든 화면이 같은 부모 (`rootCanvas`) 바로 아래여야 한다 — 부모가 갈라지면 (레이어 Canvas 를 나누면) 열린 화면 전체 스택이 따로 필요하다.- **Canvas (사용자 10-20):** 씬에 루트 Canvas 하나 (`CanvasScaler` · 렌더 모드), 각 화면 프리팹 루트에 `Canvas` (중첩, Override Sorting 끔) — 한 화면의 변경이 다른 화면의 다시 그리기를 부르지 않게. 클릭을 받는 화면은 루트에 `GraphicRaycaster` 도 (Graphic 은 가장 가까운 Canvas 에 등록돼 루트의 Raycaster 가 못 본다). 숨기기는 **`SetActive`** 그대로 (사용자 10-20) — Element 가 `OnEnable` 에서 스크롤 같은 상태를 되돌릴 수 있고, 숨은 동안 스크립트가 멈춘다. `Canvas.enabled` 는 켜고 끄기가 싸지만 숨은 동안 `Update` 가 돌고 열림 판단 (`activeSelf`) 을 다 바꿔야 해서 안 씀 — 초당 여러 번 켜고 끄는 화면 (툴팁 등) 이 생기면 그때 다시 본다.
+- **자료구조 (사용자 10-20):** VM 타입 → (프리팹 · 인스턴스 목록). **목록은 보관만** (순서 없음), **열린 순서는 계층 (형제 순서)** 이 든다 — 열 때 `SetAsLastSibling`, 닫기는 그 타입에서 열린 (`IsOpen`) 것 중 `GetSiblingIndex()` 가 가장 큰 것. 닫기 연출 중인 화면은 열려 있지 않으니 다음 닫기에서 고르지 않는다 — 화면이 자기 버튼으로 닫는 중이어도 매니저가 안다. 경과: 10-20 에 매니저의 목록 `_closingViewBuffer` 대신 `ScreenView.IsClosing` (`CloseAsync` 가 켜고 끝나거나 새 전환이 풀던 값) 을 두었고, 10-22 에 사용자가 `IsClosing` 을 없애고 `IsOpen` 하나로 모든 판단 (맨 위 찾기 · 다시 쓸 인스턴스 고르기 · `IsOpen<TVM>()` · 이미 닫혔으면 무시) 을 하게 바꿨다.
+  안 고른 것: 목록에서 `Remove` → `Add` 로 순서를 맞추기 — 순서가 목록과 계층 두 곳이라 매니저 밖에서 형제 순서를 바꾸면 어긋나고, 타입별 목록으론 타입 상관없는 "맨 위 닫기" 를 못 한다. 단점: 모든 화면이 같은 부모 (`rootCanvas`) 바로 아래여야 한다 — 부모가 갈라지면 (레이어 Canvas 를 나누면) 열린 화면 전체 스택이 따로 필요하다.- **Canvas (사용자 10-20):** 씬에 루트 Canvas 하나 (`CanvasScaler` · 렌더 모드), 각 화면 프리팹 루트에 `Canvas` (중첩, Override Sorting 끔) — 한 화면의 변경이 다른 화면의 다시 그리기를 부르지 않게. 클릭을 받는 화면은 루트에 `GraphicRaycaster` 도 (Graphic 은 가장 가까운 Canvas 에 등록돼 루트의 Raycaster 가 못 본다). 숨기기는 **`SetActive`** 그대로 (사용자 10-20) — Element 가 `OnEnable` 에서 스크롤 같은 상태를 되돌릴 수 있고, 숨은 동안 스크립트가 멈춘다. `Canvas.enabled` 는 켜고 끄기가 싸지만 숨은 동안 `Update` 가 돌아서 안 씀 (10-20 당시엔 열림 판단이 `activeSelf` 라 그것도 다 바꿔야 했다 — 10-22 부터 열림은 `IsOpen`) — 초당 여러 번 켜고 끄는 화면 (툴팁 등) 이 생기면 그때 다시 본다.
 - 같은 VM 타입의 프리팹이 둘 이상이면 매니저 `Awake` 에서 경고 (먼저 나온 것만 쓰인다, Claude 10-20).
 - 같은 날 거친 안 (되돌림): **DevLib `RegistrySystem` 항목 `ScreenEntry` (프리팹 + SO + `CreateVM`) + 생성된 enum 으로 열기.** enum 키는 인스펙터 · 이벤트 데이터에 담기 쉽지만, 패키지 밖에 Registry 연결 코드가 생기고 `Instantiate` 뒤 VM 넣기 · 프리팹과 VM 타입 짝 확인이 새로 필요했다. VM 타입 키는 패키지만으로 끝나고 이름 바꾸기 · 사용처 찾기가 IDE 로 된다. enum 으로 여는 것이 필요해지면 프로젝트에서 enum → `Open<TVM>()` 매핑만 얹는다. 그보다 앞의 처음 안 (VM 자체를 Registry 에 넣고 VM 이 프리팹을 든다) 은 VM → View 의존 · 항목마다 VM 하나 · 생성자 매개변수 불가 · 패키지의 DevLib 의존 때문에 뺐다.
 
@@ -571,7 +577,8 @@ MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae
 - `Bindable`: 같은 값 무시 · 구독 즉시 현재 값 · 새 구독자가 기존 구독자에게 다시 알리지 않음 · 해제 뒤 알림 없음 · `Select` · `Combine` 재계산과 해제.
 - `Command`: `Active` false 면 무시, `Action` 으로 갈아 끼움 · 동작 없으면 무시. `BindableList`: 알림 순서 · 인덱스.
 - `Reset`: Bindable 은 생성자 값 (객체 초기화 값 아님) · 같으면 안 알림, Command 는 생성자의 동작 · 켜짐, BindableList 는 비울 때만 알림.
-- `ScreenManager`: 다시 열 때 setup 전에 `ResetForOpen` (setup 없어도), 지난 콜백 · 값이 남지 않고 되돌리지 않는 값은 남는다.
+- `ScreenManager`: 다시 열 때 setup 전에 `ResetForOpen` (setup 없어도), 지난 콜백 · 값이 남지 않고 되돌리지 않는 값은 남는다. `IsOpen<TVM>()`: VM 타입별 · 하나라도 열려 있으면 true · 팝업이 스스로 닫아도 false · 닫기 연출 중 false, 닫기 연출 중에 다시 열면 같은 인스턴스 (10-22).
+- `ScreenView`: `IsOpen` 은 열기 시작 ~ 닫기 시작, 닫기를 취소한 열기 뒤에도 true, 닫는 중에 또 닫으면 아무것도 안 함 (10-22).
 - 팝업: VM 이 요청하면 닫힘 · 안 하면 열린 채 · 나중에 요청하면 그때 닫힘 · 닫기 버튼은 `Dismiss` 를 거침 · 닫힌 뒤 요청은 무시. `ConfirmPopupVM`: 버튼마다 콜백 뒤 닫기 요청, setup 없이 열어도 버튼이 닫는다.
 - `ViewModel`: `Own` 한 것이 `Dispose` 에서 풀린다.
 - 이름으로 채우기 (`ElementAutoFillTests`): 이름 비교 · 꺼진 · 깊은 자식 · 채워진 것은 그대로 · 안쪽 View 경계 · 같은 이름 둘 · 타입 틀림 · 부모 클래스 private 필드.

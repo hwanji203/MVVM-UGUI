@@ -61,7 +61,7 @@ namespace MVVM.UGUI.Tests
         [TearDown]
         public void TearDown()
         {
-            if (_root != null) Object.DestroyImmediate(_root);
+            if (_root) Object.DestroyImmediate(_root);
         }
 
         // 꺼 둔 채 필드를 채우고 켠다 — Awake 의 Bind 가 닫기 버튼 · 배경을 VM 의 CloseCmd 에 묶는 것까지 확인된다

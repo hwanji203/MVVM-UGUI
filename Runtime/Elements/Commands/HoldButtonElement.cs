@@ -49,7 +49,7 @@ namespace MVVM.UGUI.Elements.Commands
 
             // 실행 전에 먼저 멈춘다 — 실행이 화면을 닫아도 다음 프레임에 또 실행되지 않게
             Cancel();
-            if (completeSound != null)
+            if (completeSound)
                 completeSound.Play();
             Execute();
         }
@@ -65,7 +65,7 @@ namespace MVVM.UGUI.Elements.Commands
 
         private void SetProgress(float ratio)
         {
-            if (progressFill != null)
+            if (progressFill)
                 progressFill.fillAmount = Mathf.Clamp01(ratio);
         }
 
@@ -74,7 +74,7 @@ namespace MVVM.UGUI.Elements.Commands
             _active = enable;
             if (!enable)
                 Cancel();
-            if (group != null)
+            if (group)
                 group.alpha = enable ? 1f : lockedAlpha;
         }
 

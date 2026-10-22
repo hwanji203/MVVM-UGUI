@@ -73,7 +73,7 @@ namespace MVVM.UGUI.Elements.Feedback
             {
                 entry.Seq?.Kill();
                 entry.Seq = null;
-                if (entry.Label != null)
+                if (entry.Label)
                     entry.Label.gameObject.SetActive(false);
             }
         }

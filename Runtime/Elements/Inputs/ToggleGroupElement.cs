@@ -35,7 +35,7 @@ namespace MVVM.UGUI.Elements.Inputs
                 return;
             }
 
-            if (clickSound != null)
+            if (clickSound)
                 clickSound.Play();
             Write(index);
         }

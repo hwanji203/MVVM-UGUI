@@ -29,7 +29,7 @@ namespace MVVM.UGUI.Elements.Display
             switch (mode)
             {
                 case Mode.Active:
-                    (target != null ? target : gameObject).SetActive(visible);
+                    (target ? target : gameObject).SetActive(visible);
                     break;
                 case Mode.Fade:
                     group.alpha = visible ? 1f : 0f;
@@ -55,7 +55,7 @@ namespace MVVM.UGUI.Elements.Display
 
         private void SetInput(bool visible)
         {
-            if (group == null)
+            if (!group)
                 return;
             group.interactable = visible;
             group.blocksRaycasts = visible;

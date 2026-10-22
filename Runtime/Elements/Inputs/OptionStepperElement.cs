@@ -67,7 +67,7 @@ namespace MVVM.UGUI.Elements.Inputs
             if (next == Source.Value)
                 return;
 
-            if (clickSound != null)
+            if (clickSound)
                 clickSound.Play();
             Write(next);
         }

@@ -42,14 +42,14 @@ namespace MVVM.UGUI.Tests
         public void TearDown()
         {
             foreach (var go in _created)
-                if (go != null) Object.DestroyImmediate(go);
+                if (go) Object.DestroyImmediate(go);
             _created.Clear();
         }
 
         private GameObject Node(string name, Transform parent = null)
         {
             var go = new GameObject(name);
-            if (parent != null) go.transform.SetParent(parent, false);
+            if (parent) go.transform.SetParent(parent, false);
             else _created.Add(go);
             return go;
         }

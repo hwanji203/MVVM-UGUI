@@ -33,7 +33,7 @@ namespace MVVM.UGUI.Core
             var firstByVM = new Dictionary<Type, ScreenView>();
             foreach (var prefab in screenViewPrefabs)
             {
-                if (prefab == null)
+                if (!prefab)
                     continue;
 
                 Type vmType = FindVMType(prefab.GetType());
@@ -67,9 +67,17 @@ namespace MVVM.UGUI.Core
             Type vmType = typeof(TVM);
             //Pool에서 생성했던 해당 타입의 UI를 찾기, 만약 없다면 풀을 생성하기, 근데 해당 타입의 프리팹이 없으면 Error
             if (_viewPool.TryGetValue(vmType, out var viewSlot) || TryCreateViewPool<TVM>(vmType, out viewSlot))
-                await OpenScreenAsync(vmType, viewSlot, setup);
+                await OpenScreenAsync(viewSlot, setup);
             else
                 Debug.LogError($"{vmType}타입을 가진 UI 프리팹이 존재하지 않습니다.");
+        }
+
+        public bool IsOpen<TVM>() where TVM : AbstractViewModel
+        {
+            Type vmType = typeof(TVM);
+            if (!_viewPool.TryGetValue(vmType, out var viewSlot))
+                return false;
+            return viewSlot.ViewPool.Any(v => v.IsOpen);
         }
 
         public void Close<TVM>() where TVM : AbstractViewModel
@@ -79,7 +87,7 @@ namespace MVVM.UGUI.Core
         {
             ScreenView topView = FindTopOpenView(typeof(TVM));
             
-            if (topView != null)
+            if (topView)
                 await topView.CloseAsync();
         }
 
@@ -92,25 +100,23 @@ namespace MVVM.UGUI.Core
             ScreenView topView = null;
             foreach (var view in viewSlot.ViewPool)
             {
-                if (!view.gameObject.activeSelf)
+                if (!view.IsOpen)
                     continue;
-                if (view.IsClosing)
-                    continue;
-                if (topView == null || view.transform.GetSiblingIndex() > topView.transform.GetSiblingIndex())
+                if (!topView || view.transform.GetSiblingIndex() > topView.transform.GetSiblingIndex())
                     topView = view;
             }
 
             return topView;
         }
 
-        private async UniTask OpenScreenAsync<TVM>(Type type, ViewSlot viewSlot, Action<TVM> setup) 
+        private async UniTask OpenScreenAsync<TVM>(ViewSlot viewSlot, Action<TVM> setup) 
             where TVM : AbstractViewModel, new()
         {
             List<ScreenView> viewPool = viewSlot.ViewPool;
             
             ScreenView<TVM> targetView = viewPool
-                .LastOrDefault(v => !v.gameObject.activeSelf) as ScreenView<TVM>;
-            if (targetView == null)
+                .LastOrDefault(v => !v.IsOpen) as ScreenView<TVM>;
+            if (!targetView)
             {
                 targetView = (ScreenView<TVM>)Instantiate(viewSlot.ViewPrefab, rootCanvas.transform);
                 Debug.Assert(viewSlot.ViewPrefab.gameObject.activeSelf, $"{viewSlot.ViewPrefab.name} 프리팹의 active가 꺼져있습니다.");

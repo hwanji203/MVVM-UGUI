@@ -24,10 +24,10 @@ namespace MVVM.UGUI.Elements.Lists
         {
             Unbind();
 
-            if (itemPrefab == null || itemPrefab.ItemType != typeof(TItem))
+            if (!itemPrefab || itemPrefab.ItemType != typeof(TItem))
             {
                 Debug.LogError($"[MVVM UGUI] {name}: 항목 프리팹이 ItemView<{typeof(TItem).Name}> 가 아니다 " +
-                               $"({(itemPrefab == null ? "비어 있음" : itemPrefab.ItemType.Name)}).", this);
+                               $"({(!itemPrefab ? "비어 있음" : itemPrefab.ItemType.Name)}).", this);
                 return;
             }
 
@@ -60,14 +60,14 @@ namespace MVVM.UGUI.Elements.Lists
 
         private ItemView Create()
         {
-            var view = Instantiate(itemPrefab, container != null ? container : transform);
+            var view = Instantiate(itemPrefab, container ? container : transform);
             _views.Add(view);
             return view;
         }
 
         private static void Hide(ItemView view)
         {
-            if (view == null || !view.gameObject.activeSelf)
+            if (!view || !view.gameObject.activeSelf)
                 return;
             view.ClearItem();
             view.gameObject.SetActive(false);

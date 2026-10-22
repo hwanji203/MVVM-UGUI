@@ -50,14 +50,14 @@ namespace MVVM.UGUI.Tests
         public void TearDown()
         {
             foreach (var go in _created)
-                if (go != null) Object.DestroyImmediate(go);
+                if (go) Object.DestroyImmediate(go);
             _created.Clear();
         }
 
         private GameObject Go(string name = "Test", Transform parent = null)
         {
             var go = new GameObject(name, typeof(RectTransform));
-            if (parent != null)
+            if (parent)
                 go.transform.SetParent(parent, false);
             else
                 _created.Add(go);
@@ -430,7 +430,7 @@ namespace MVVM.UGUI.Tests
             foreach (Transform child in container.transform)
             {
                 var view = child.GetComponent<TestItemView>();
-                if (view != null && child.gameObject.activeSelf)
+                if (view && child.gameObject.activeSelf)
                     views.Add(view);
             }
             return views;

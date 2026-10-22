@@ -19,8 +19,8 @@ namespace MVVM.UGUI.AssistComponent
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (highlight != null && eventData.dragging && eventData.pointerDrag != null &&
-                eventData.pointerDrag.GetComponent<DragElement>() != null)
+            if (highlight && eventData.dragging && eventData.pointerDrag &&
+                eventData.pointerDrag.GetComponent<DragElement>())
                 highlight.SetActive(true);
         }
 
@@ -30,7 +30,7 @@ namespace MVVM.UGUI.AssistComponent
 
         private void HideHighlight()
         {
-            if (highlight != null)
+            if (highlight)
                 highlight.SetActive(false);
         }
     }

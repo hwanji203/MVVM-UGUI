@@ -25,10 +25,10 @@ namespace MVVM.UGUI.Elements.Commands
         {
             base.HandleActiveChanged(enable);
 
-            if (lockedMark != null)
+            if (lockedMark)
                 lockedMark.SetActive(!enable);
 
-            if (label == null)
+            if (!label)
                 return;
             if (!_textRead)
             {
@@ -41,7 +41,7 @@ namespace MVVM.UGUI.Elements.Commands
         // Button 이 잠기면 onClick 이 오지 않으므로 클릭 자체를 따로 받는다
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (!button.interactable && lockedSound != null)
+            if (!button.interactable && lockedSound)
                 lockedSound.Play();
         }
     }

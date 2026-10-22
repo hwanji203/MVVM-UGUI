@@ -28,7 +28,7 @@ namespace MVVM.UGUI.AssistComponent
         private bool _pressed;
         private Sequence _seq;
 
-        private Transform Target => target != null ? target : transform;
+        private Transform Target => target ? target : transform;
 
         private void Awake() => _selectable = GetComponent<Selectable>();
 
@@ -48,7 +48,7 @@ namespace MVVM.UGUI.AssistComponent
                 _baseScale = Target.localScale;
             }
 
-            bool interactable = _selectable == null || _selectable.IsInteractable();
+            bool interactable = !_selectable || _selectable.IsInteractable();
             // 누름 > 올림 > 보통 순으로 고른다. 잠겨 있으면 늘 보통
             float scale = !interactable ? 1f : _pressed ? pressScale : _over ? hoverScale : 1f;
             float alpha = !interactable ? 1f : _pressed ? pressAlpha : _over ? hoverAlpha : 1f;
@@ -56,7 +56,7 @@ namespace MVVM.UGUI.AssistComponent
             _seq?.Kill();
             _seq = DOTween.Sequence().SetUpdate(true).SetLink(gameObject);
             _seq.Append(Target.DOScale(_baseScale * scale, duration));
-            if (group != null)
+            if (group)
                 _seq.Join(DOTween.To(() => group.alpha, a => group.alpha = a, alpha, duration));
         }
 
@@ -68,7 +68,7 @@ namespace MVVM.UGUI.AssistComponent
             _seq = null;
             if (_baseRead)
                 Target.localScale = _baseScale;
-            if (group != null)
+            if (group)
                 group.alpha = 1f;
         }
 

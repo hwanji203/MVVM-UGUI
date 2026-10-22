@@ -16,7 +16,7 @@ namespace MVVM.UGUI.Elements.Inputs
             base.HandleValueChanged(index);
             for (int i = 0; i < pages.Length; i++)
             {
-                if (pages[i] != null)
+                if (pages[i])
                     pages[i].SetActive(i == index);
             }
         }

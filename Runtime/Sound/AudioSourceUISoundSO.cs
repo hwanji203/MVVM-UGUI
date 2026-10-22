@@ -13,7 +13,7 @@ namespace MVVM.UGUI.Sound
 
         public override void Play()
         {
-            if (clip == null || !Application.isPlaying)
+            if (!clip || !Application.isPlaying)
                 return;
 
             SharedSource().PlayOneShot(clip, volume);
@@ -22,7 +22,7 @@ namespace MVVM.UGUI.Sound
         // 처음 소리를 낼 때 씬 전환에도 남는 AudioSource 하나를 만든다
         private static AudioSource SharedSource()
         {
-            if (_shared != null)
+            if (_shared)
                 return _shared;
 
             var go = new GameObject("[MVVM UGUI Sound]");

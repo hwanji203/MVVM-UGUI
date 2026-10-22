@@ -20,7 +20,7 @@ namespace MVVM.UGUI.Elements.Commands
 
         private void OnClicked()
         {
-            if (clickSound != null)
+            if (clickSound)
                 clickSound.Play();
             Execute();
         }

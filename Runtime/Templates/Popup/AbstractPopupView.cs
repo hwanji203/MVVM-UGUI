@@ -37,7 +37,7 @@ namespace MVVM.UGUI.Templates.Popup
         {
             SetClickable(_canvasGroup, false);
             
-            if (backgroundDim == null)
+            if (!backgroundDim)
                 await window.PlayOpen(token);
             else
                 await UniTask.WhenAll(window.PlayOpen(token), backgroundDim.PlayOpen(token));
@@ -50,7 +50,7 @@ namespace MVVM.UGUI.Templates.Popup
         {
             SetClickable(_canvasGroup, false);
             
-            if (backgroundDim == null)
+            if (!backgroundDim)
                 await window.PlayClose(token);
             else
                 await UniTask.WhenAll(window.PlayClose(token), backgroundDim.PlayClose(token));

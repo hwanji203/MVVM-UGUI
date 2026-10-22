@@ -56,7 +56,7 @@ namespace MVVM.UGUI.Elements.Popups
         {
             if (!_active)
                 return;
-            if (clickSound != null)
+            if (clickSound)
                 clickSound.Play();
             Execute();
         }

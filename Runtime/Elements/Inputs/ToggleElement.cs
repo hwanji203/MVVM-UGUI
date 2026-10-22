@@ -20,7 +20,7 @@ namespace MVVM.UGUI.Elements.Inputs
 
         private void OnToggled(bool isOn)
         {
-            if (clickSound != null)
+            if (clickSound)
                 clickSound.Play();
             Write(isOn);
         }

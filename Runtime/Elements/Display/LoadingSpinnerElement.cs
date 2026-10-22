@@ -19,7 +19,7 @@ namespace MVVM.UGUI.Elements.Display
         protected override void HandleValueChanged(bool loading)
         {
             _spinning = loading;
-            (root != null ? root : gameObject).SetActive(loading);
+            (root ? root : gameObject).SetActive(loading);
         }
 
         private void Update()
@@ -30,7 +30,7 @@ namespace MVVM.UGUI.Elements.Display
             _angle = (_angle + degreesPerSecond * Time.unscaledDeltaTime) % 360f;
             // steps 가 있으면 한 칸 (360 / steps 도) 단위로 끊어 보여준다
             float shown = steps > 0 ? Mathf.Floor(_angle / (360f / steps)) * (360f / steps) : _angle;
-            (spinner != null ? spinner : transform).localRotation = Quaternion.Euler(0f, 0f, -shown);
+            (spinner ? spinner : transform).localRotation = Quaternion.Euler(0f, 0f, -shown);
         }
     }
 }

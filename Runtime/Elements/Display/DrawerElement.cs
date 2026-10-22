@@ -28,7 +28,7 @@ namespace MVVM.UGUI.Elements.Display
             seq.Append(DOTween.To(() => Rect.anchoredPosition, p => Rect.anchoredPosition = p, Destination(open), duration)
                 .SetEase(ease));
 
-        private RectTransform Rect => _rect != null ? _rect : _rect = (RectTransform)transform;
+        private RectTransform Rect => _rect ? _rect : _rect = (RectTransform)transform;
 
         private Vector2 Destination(bool open)
         {

@@ -38,7 +38,7 @@ namespace MVVM.UGUI.Tests
         [TearDown]
         public void TearDown()
         {
-            if (_go != null) Object.DestroyImmediate(_go);
+            if (_go) Object.DestroyImmediate(_go);
         }
 
         private static bool IsDone(UniTask task) => task.Status == UniTaskStatus.Succeeded;
@@ -111,30 +111,51 @@ namespace MVVM.UGUI.Tests
             Assert.IsTrue(_go.activeSelf, "취소된 닫기가 나중에 끄면 안 된다");
         }
 
+        // 열림 = 열기를 시작한 때부터 닫기를 시작할 때까지 (사용자 10-22 — IsClosing 을 없애고 IsOpen 하나로)
         [Test]
-        public void IsClosing_OnlyDuringCloseAnimation()
+        public void IsOpen_FromOpenUntilCloseStarts()
         {
-            _view.OpenAsync().Forget();
             _view.CloseGate = new UniTaskCompletionSource();
-            Assert.IsFalse(_view.IsClosing);
+            Assert.IsFalse(_view.IsOpen, "처음은 닫힘");
+
+            _view.OpenAsync().Forget();
+            Assert.IsTrue(_view.IsOpen);
 
             _view.CloseAsync().Forget();
-            Assert.IsTrue(_view.IsClosing);
+            Assert.IsFalse(_view.IsOpen, "닫기를 시작하면 연출 중에도 닫힘");
+            Assert.IsTrue(_go.activeSelf, "연출이 끝날 때까지는 켜져 있다");
 
             _view.CloseGate.TrySetResult();
-            Assert.IsFalse(_view.IsClosing);
+            Assert.IsFalse(_view.IsOpen);
         }
 
         [Test]
-        public void IsClosing_ClearedWhenOpenCancelsClose()
+        public void IsOpen_TrueAgainWhenOpenCancelsClose()
         {
             _view.OpenAsync().Forget();
             _view.CloseGate = new UniTaskCompletionSource();
             _view.CloseAsync().Forget();
 
             _view.OpenAsync().Forget();
+            _view.CloseGate.TrySetResult();
 
-            Assert.IsFalse(_view.IsClosing);
+            Assert.IsTrue(_view.IsOpen, "취소된 닫기가 끝나며 닫힘으로 되돌리면 안 된다");
+        }
+
+        [Test]
+        public void Close_WhileClosing_DoesNothing()
+        {
+            _view.OpenAsync().Forget();
+            _view.CloseGate = new UniTaskCompletionSource();
+            var first = _view.CloseAsync();
+
+            var second = _view.CloseAsync();
+            Assert.IsTrue(IsDone(second), "이미 닫는 중이면 바로 끝난다 (연출을 다시 시작하지 않는다)");
+            Assert.IsFalse(IsDone(first));
+
+            _view.CloseGate.TrySetResult();
+            Assert.IsTrue(IsDone(first));
+            Assert.IsFalse(_go.activeSelf);
         }
 
         [Test]

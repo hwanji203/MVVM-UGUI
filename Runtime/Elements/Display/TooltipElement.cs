@@ -30,7 +30,7 @@ namespace MVVM.UGUI.Elements.Display
         protected override void HandleValueChanged(string value)
         {
             _text = value;
-            if (tooltipText != null)
+            if (tooltipText)
                 tooltipText.text = value;
             if (string.IsNullOrEmpty(value))
                 Hide();
@@ -50,7 +50,7 @@ namespace MVVM.UGUI.Elements.Display
 
         private void Update()
         {
-            if (!_pointerOver || tooltipRoot == null || tooltipRoot.activeSelf || string.IsNullOrEmpty(_text))
+            if (!_pointerOver || !tooltipRoot || tooltipRoot.activeSelf || string.IsNullOrEmpty(_text))
                 return;
 
             _waited += Time.unscaledDeltaTime;
@@ -66,7 +66,7 @@ namespace MVVM.UGUI.Elements.Display
 
         private void Hide()
         {
-            if (tooltipRoot != null)
+            if (tooltipRoot)
                 tooltipRoot.SetActive(false);
         }
     }
