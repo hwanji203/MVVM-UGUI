@@ -1,7 +1,7 @@
 # MVVM UGUI 아키텍처
 
 화면마다 **ViewModel + View + 프리팹**만 작성하도록 반복되는 UI 연결을 공용화한다.
-이 문서는 구조 지도다(v0.3.0 기준). 세부 설계와 결정 이유는 [DESIGN.md](DESIGN.md), 진행·결정 기록은 [ROADMAP.md](ROADMAP.md), 팀원용 사용 가이드는 패키지 루트의 `Design Doc.html`에 있다.
+이 문서는 구조 지도다(v0.4.0 기준). 세부 설계와 결정 이유는 [DESIGN.md](DESIGN.md), 진행·결정 기록은 [ROADMAP.md](ROADMAP.md), 팀원용 사용 가이드는 패키지 루트의 `Design Doc.html`에 있다.
 
 ## 1. 구성과 책임
 

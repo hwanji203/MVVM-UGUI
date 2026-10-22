@@ -1,6 +1,6 @@
 {
   "name": "com.banggae.mvvm-ugui",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "displayName": "MVVM UGUI",
   "description": "UGUI MVVM framework: Bindable values, reusable Elements, auto-fill element fields, screen manager and popups.",
   "unity": "6000.3",
