@@ -23,7 +23,7 @@
 | Presenter 가 값을 바꾸고 `UpdateForm(A)` · `UpdateForm(B)` 를 손으로 | 반복, 빠뜨림 | `Bindable<T>` + 파생 값 |
 | SO 에 메서드 이름 문자열 → 실행 시 리플렉션 | 이름이 바뀌면 조용히 끊김 | 연결은 C# 코드 (생성되거나 손으로) — 틀리면 컴파일 에러 |
 | `F_` 이름 → 계층 순서 (childIndex) → enum | 계층 순서가 바뀌면 깨짐 | 참조 배열 + 생성된 타입 있는 속성 |
-| `UIParam` 캐스팅 | 실행 중에 터짐 | `ValueElement<T>` — 타입 고정 |
+| `UIParam` 캐스팅 | 실행 중에 터짐 | `VisualElement<T>` · `FormElement<T>` — 타입 고정 |
 | 이름 Form | "입력 양식" 처럼 읽힘 | **Element** |
 | `UIManager : LightSingleton`, 화면끼리 `public static bool` | 싱글톤 · 전역 상태 | 씬마다 일반 컴포넌트 `ScreenManager` |
 | `IMultiable` (같은 팝업 N 개가 모두 이벤트를 받고 상태 머신으로 조율) | 복잡 | `ScreenManager` 하나가 받고 인스턴스를 고른다 |
@@ -48,21 +48,25 @@ View ──안다──▶ ViewModel ──▶ (프로젝트의 이벤트 시스
 
 ### 1.1 처음 값
 
-이벤트는 바뀐 것만 알려준다. 화면이 만들어질 때의 값은 — 기본은 **시작 이벤트에 담아** 받고, 중간에 여는 화면만 **읽기 전용 상태나 SO 를 생성자로** 받아 읽는다.
+이벤트는 바뀐 것만 알려준다. 화면이 만들어질 때의 값은 — 기본은 **시작 이벤트에 담아** 받고, 중간에 여는 화면만 **읽기 전용 상태나 SO 를 VM 의 직렬화 필드 (4.3) 나 setup (5.1) 으로** 받아 읽는다. (처음엔 생성자로 받았는데, VM 이 `new()` 로 만들어지는 직렬화 필드가 되면서 바뀌었다 — 4.3.)
 
 ### 1.2 UI 로 값을 바꾸는 화면 (설정창 예)
 
 ```csharp
-public class SettingsViewModel : ViewModel
+[Serializable]
+public class SettingsViewModel : AbstractViewModel, IInitializable
 {
-    public readonly Bindable<float> MasterVolume;
+    [SerializeField] private SettingsSO settings;                                   // Model = 프로젝트의 설정 SO (VM 의 직렬화 필드, 4.3)
+    public Bindable<float> MasterVolume { get; } = new();
 
-    public SettingsViewModel(SettingsSO settings)                                  // Model = 프로젝트의 설정 SO
+    public void Initialize()                                                        // 역직렬화 뒤 한 번 — 생성자에서는 settings 가 아직 비어 있다
     {
-        MasterVolume = new Bindable<float>(settings.MasterVolume);                  // 처음 값
-        MasterVolume.Subscribe(v => settings.SetMasterVolume(v), notifyNow: false);  // VM → M (자기 Bindable → 해제 불필요)
-        Own(settings.MasterVolumeChanged.Subscribe(v => MasterVolume.Value = v));    // 다른 곳에서 바뀌면 따라감 (SO 는 오래 산다 → Own)
+        MasterVolume.Value = settings.MasterVolume;                                 // 처음 값
+        MasterVolume.Bind(v => settings.SetMasterVolume(v));                        // VM → M (자기 Bindable → 해제 불필요. 구독 즉시 지금 값을 한 번 넘긴다 — 같은 값)
+        Own(settings.MasterVolumeChanged.Subscribe(v => MasterVolume.Value = v));   // 다른 곳에서 바뀌면 따라감 (프로젝트 SO 의 구독 API. SO 는 오래 산다 → Own)
     }
+
+    protected override void ResetForOpen() { }                                      // 저장되는 양방향 값은 되돌리지 않는다 (2.5)
 }
 ```
 
@@ -76,22 +80,22 @@ public class SettingsViewModel : ViewModel
 public interface IReadOnlyBindable<T>
 {
     T Value { get; }
-    IDisposable Subscribe(Action<T> onChanged, bool notifyNow = true);   // 기본: 구독 즉시 현재 값을 한 번 넘김
+    IDisposable Bind(Action<T> onChanged);   // 구독 즉시 현재 값을 한 번 넘긴다
 }
 
-public class Bindable<T> : IReadOnlyBindable<T>
+public class Bindable<T> : IReadOnlyBindable<T>, IResettable
 {
     public Bindable(T initial = default);
     public T Value { get; set; }          // 같은 값이면 무시 (EqualityComparer<T>.Default), 다르면 구독자 전부 호출
-    public IDisposable Subscribe(Action<T> onChanged, bool notifyNow = true);
+    public IDisposable Bind(Action<T> onChanged);
     public void Reset();                  // 생성자 값으로 (IResettable, 2.5) — { Value = … } 객체 초기화는 초기값이 아니다
 }
 ```
 
-- **구독하는 길은 `Subscribe` 하나.** `Changed` 이벤트를 밖에 열지 않는다 (처음 값 놓침 · 해제 잊음 방지). 내부 도우미도 `Subscribe` 를 쓴다.
-- 구독 즉시 현재 값 → 화면을 처음 열 때 "전부 갱신" 이 필요 없다.
+- **구독하는 길은 `Bind` 하나.** `Changed` 이벤트를 밖에 열지 않는다 (처음 값 놓침 · 해제 잊음 방지). 내부 도우미 (`Select` · `Combine` · Element) 도 `Bind` 를 쓴다.
+- 구독 즉시 현재 값 → 화면을 처음 열 때 "전부 갱신" 이 필요 없다. 처음 설계의 `notifyNow` (구독 즉시 호출 끄기) 는 v0.3.0 에 없다 — 늘 부른다.
 - 참조 타입의 내부만 바뀌면 알 수 없다 → 목록은 `BindableList<T>`, 그 밖에는 새 값을 넣는다.
-- 이름 구분: `Subscribe` (Bindable 의 것) ≠ `Bind` (Element 의 것, 안에서 `Subscribe(Apply)`).
+- 이름: 구독 메서드도 `Bind` 라 Element 의 `Bind` 와 이름이 같다. 처음 설계는 `Subscribe` (Bindable) ≠ `Bind` (Element) 로 나눴지만, 사용자가 코드를 쓰며 `Bind` 로 정했고 이름 문제는 없다고 봐 그대로 둔다 (사용자 10-22).
 
 **노출 규칙 (확정)** — 값 하나에 private + public 두 줄을 쓰는 반복을 피한다:
 
@@ -104,7 +108,7 @@ public class Bindable<T> : IReadOnlyBindable<T>
 ### 2.2 파생 값 (확정)
 
 ```csharp
-// 정적 클래스 Bindable. Combine 은 CombineBindable<TR, T1, T2> (IReadOnlyBindable<TR> + IDisposable) 를 돌려준다
+// 정적 클래스 Bindable. Select 는 SelectBindable<TR, T1>, Combine 은 CombineBindable<TR, T1, T2> 를 돌려준다 (둘 다 IReadOnlyBindable<TR> + IDisposable)
 HpRatio = Bindable.Combine(Hp, MaxHp, (h, m) => (float)h / m);   // 원본이 VM 자신의 값 → 끊지 않아도 된다
 HpText  = Bindable.Combine(Hp, MaxHp, (h, m) => $"{h}/{m}");
 
@@ -112,11 +116,11 @@ var volumeText = Bindable.Combine(settings.Volume, settings.Muted, (v, m) => m ?
 Own(volumeText);                                                  // 원본이 VM 보다 오래 산다 → 맡긴다
 VolumeText = volumeText;
 
-Dead    = Bindable.Select(Hp, h => h <= 0).bindable;               // Select 는 아직 (bindable, unSub) 튜플
+Dead    = Bindable.Select(Hp, h => h <= 0);                        // 원본이 VM 자신의 값 → 끊지 않아도 된다
 ```
 
 "원본이 바뀌면 무엇을 갱신할지" 를 **만들 때 한 번** 선언한다. 원본을 바꾸는 이벤트가 늘어도 갱신 코드는 안 는다.
-**해제 (사용자 2026-10-18):** 파생 값은 원본 구독을 끊을 수 있어야 한다. 원본이 VM 자신의 값이면 같이 버려지므로 끊지 않아도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own` — 안 하면 화면을 닫아도 원본이 파생 값을 붙잡아 계속 다시 계산된다. `Combine` 은 값과 해제가 한 객체 (생성자가 원본을 구독, `Dispose` 로 끊음), `Select` 는 아직 튜플. `Own` 을 잊어도 컴파일은 되므로 오래 사는 원본일 때는 리뷰로 본다.
+**해제 (사용자 2026-10-18):** 파생 값은 원본 구독을 끊을 수 있어야 한다. 원본이 VM 자신의 값이면 같이 버려지므로 끊지 않아도 되고, VM 보다 오래 사는 원본 (SO · 전역 객체) 이면 `Own` — 안 하면 화면을 닫아도 원본이 파생 값을 붙잡아 계속 다시 계산된다. `Select` · `Combine` 모두 값과 해제가 한 객체 (생성자가 원본을 구독, `Dispose` 로 끊음 — `Select` 도 처음의 `(bindable, unSub)` 튜플에서 이 모양으로 바뀌었다). `Own` 을 잊어도 컴파일은 되므로 오래 사는 원본일 때는 리뷰로 본다.
 `[세부]` 인자 수 — 지금 `Select` 1 · `Combine` 2 (3 은 필요할 때). namespace `MVVM.UGUI.Binding` (ROADMAP "정한 세부").
 
 ### 2.3 `Command` (확정)
@@ -139,7 +143,7 @@ public class Command
 
 ### 2.4 `BindableList<T>`
 
-한 화면 안에서 개수가 바뀌는 목록 (손패 · 상점 칸). `[세부]` 알림 종류 — `Added(index, item)` · `Removed(index)` · `Replaced` · `Reset` 으로 시작.
+한 화면 안에서 개수가 바뀌는 목록 (손패 · 상점 칸). `[세부]` 알림 종류 — v0.3.0 은 두 가지: **목록 전체** (`Add` · `Remove` · `RemoveAt` · `Clear` → `Bind(Action<IReadOnlyList<T>>)`, 구독 즉시 부름) · **한 칸** (인덱서 대입 → `Bind(Action<int, T>)`, 구독 때는 안 부름). 처음 계획은 `Added(index, item)` · `Removed(index)` · `Replaced` · `Reset` 이었다.
 `Reset()` (IResettable, 2.5) 은 빈 목록으로 — 이미 비어 있으면 알리지 않는다 (`Clear()` 는 늘 알린다).
 같은 **화면**을 여러 개 띄우는 것 (5.3) 과는 다른 문제.
 
@@ -161,9 +165,10 @@ public abstract class AbstractViewModel : IDisposable
 
 | 구독 대상 | 끊어야 하나 | 쓰는 것 |
 | --- | --- | --- |
-| VM 자신의 Bindable · 파생 값 | 아니요 (같이 버려진다) | 그냥 `Subscribe` |
+| VM 자신의 Bindable · 파생 값 | 아니요 (같이 버려진다) | 그냥 `Bind` |
 | 프로젝트의 이벤트 채널 | **예** | 구독 + `Dispose` 에서 해제 (프로젝트 코드) |
-| SO 의 변경 알림 · 전역 객체 | **예** | `Own(...Subscribe(...))` |
+| SO 의 변경 알림 · 전역 객체 | **예** | `Own(...Bind(...))` (Bindable 이 아니면 그 구독의 해제 핸들) |
+| setup 으로 받은 대상 (씬의 Model 등, 5.1) | **예** — 열 때마다 대상이 바뀔 수 있다 | `Setup` 에서 구독, `ResetForOpen` · `Dispose` 에서 해제 |
 
 **열 때마다 되돌리기 — `ResetForOpen` (사용자 10-21):** 닫힌 화면은 파괴되지 않고 다시 쓰이며 (5.1) `Bind` 는 `Awake` 에서 한 번이라, 지난번 `setup` 이 넣은 값 · 콜백이 다음 열기에 남는다. `ScreenManager` 가 열 때마다 `setup` 직전에 (setup 이 없어도) 부른다. 매니저는 `internal PrepareOpen()` 을 거쳐 부르므로 하위 VM 은 어느 어셈블리에 있든 `protected override`.
 
@@ -184,14 +189,14 @@ public class ShopVM : AbstractViewModel
 - **`Reset` 의 기준은 "만든 직후"** (사용자 10-21 요청 "동작 비우기 · 다시 켜기를 매번 쓰지 않게", 구현 Claude). 그래서 생성자에 넣은 값 · 동작이 열 때마다의 기본이 된다 — 예: `new Command(RequestClose)` 는 되돌려도 닫기는 남아 setup 없이 열어도 팝업이 갇히지 않는다. 단점: `new Bindable<int> { Value = 5 }` (객체 초기화) 는 생성 뒤 대입이라 `Reset` 이 0 으로 간다 — 초기값은 생성자로 (`new(5)`).
 - **한 번만 할 일은 여기가 아니다** — 직렬화된 SO 구독 · `Own` · 파생 값은 `IInitializable.Initialize` (Awake, Bind 전, 한 번, 4.3). 여기에 두면 열 때마다 구독이 쌓인다.
 - **Model 이 채우는 값 · 양방향으로 저장되는 값은 되돌리지 않는다** — 다시 열면 Model 이 바뀔 때까지 기본값이 보이거나, 되돌린 값이 저장으로 흘러간다.
-- 단점: abstract 라 되돌릴 게 없는 VM (매니저 밖의 HUD 포함) 도 빈 override 를 쓴다. 목록은 손으로 쓰므로 빠뜨린 필드는 지난 값이 남는다 — 컴파일러로 못 막는다 (Unity 는 C# 9 라 `required` 도 없다).
+- 단점: abstract 라 되돌릴 게 없는 VM 도 빈 override 를 쓴다. 목록은 손으로 쓰므로 빠뜨린 필드는 지난 값이 남는다 — 컴파일러로 못 막는다 (Unity 는 C# 9 라 `required` 도 없다).
 - 안 고른 안: View 가 Bind 한 원본을 모아 닫힐 때 Clear (사용자) — Element 는 원본이 어디서 왔는지 몰라 Model 값 · 양방향 저장값 · View 가 만든 닫기 Command 까지 비우고, 읽기 전용 인터페이스에 Clear 를 열어야 한다. VM 선언에서 `PerOpen(...)` 으로 표시 (Claude) — 바인딩 타입마다 지원이 필요하고 일반 필드는 따로다. `Initialize` 를 abstract 로 열 때마다 (사용자) — 한 번만 할 일의 자리가 없어져 둘로 나눔. 경과는 ROADMAP 10-21.
 
 ### 2.6 수명 (확정)
 
 - **View 에 bag 이 없다.** Element 가 자기 연결을 들고 있다가 자기 `OnDestroy` 에서 끊고, ViewModel 은 View 가 `OnDestroy` 에서 `Dispose`.
 - 그래서 **Element 의 `Bind` 는 `void`**. 끊을 일이 있으면 `Unbind()`, 다시 묶으면 `Bind` 가 이전 연결을 끊는다.
-- `Bindable.Subscribe` 는 `IDisposable` 을 돌려준다 (Element 내부 · `Combine` · `Own` 이 쓴다).
+- `Bindable.Bind` 는 `IDisposable` 을 돌려준다 (Element 내부 · `Select` · `Combine` · `Own` 이 쓴다).
 - **`Dispose` 는 View 가 파괴될 때 한 번** (씬이 바뀔 때 · 여러 개 뜨는 팝업을 닫을 때). **닫힌 (비활성) 화면은 Dispose 하지 않는다** — 계속 이벤트를 받아 값이 최신, 다시 열면 바로 맞다.
 
 ### 2.7 `Signal<T>` — 일회성 알림 (사용자 10-20)
@@ -211,32 +216,35 @@ public class Signal<T> : IReadOnlySignal<T> { public void Fire(T value); … }
 ### 3.1 기반 (확정)
 
 ```csharp
-public abstract class ValueElement<T> : Element
+public class Element : MonoBehaviour
 {
-    private IDisposable _binding;
+    protected readonly DisposableBag Bindings = new();   // 이 Element 의 연결 — 다시 묶거나 파괴될 때 한 번에 푼다
+    public virtual void Unbind() => Bindings.Clear();
+    protected virtual void OnDestroy() { Unbind(); /* + 트윈 Kill */ }
+}
 
-    public void Bind(IReadOnlyBindable<T> source)
+public abstract class VisualElement<T> : Element      // 한 방향 (값 → 화면)
+{
+    public virtual void Bind(IReadOnlyBindable<T> source)
     {
-        Unbind();                             // 다시 묶으면 이전 연결은 끊는다
-        _binding = source.Subscribe(Apply);   // 구독 즉시 현재 값으로 Apply
+        Unbind();                                        // 다시 묶으면 이전 연결은 끊는다
+        Bindings.Add(source.Bind(HandleValueChanged));   // 구독 즉시 현재 값으로 HandleValueChanged
     }
 
-    public void Unbind() { _binding?.Dispose(); _binding = null; }
-
-    protected abstract void Apply(T value);   // 각 Element 는 이것만 구현
-    protected virtual void OnDestroy() => Unbind();
+    protected abstract void HandleValueChanged(T value); // 각 Element 는 이것만 구현
 }
 ```
 
-- `Bind` 는 `IReadOnlyBindable<T>` 를 받는다 → `Bindable` · 파생 값 둘 다 넘길 수 있다. 양방향 Element 는 `Bindable<T>` 를 받는 오버로드.
+- 처음 설계의 이름은 `ValueElement<T>` · `Apply` 였다. v0.3.0 은 위처럼 연결 바구니가 `Element` 에 있고, 값 Element 의 바탕은 `VisualElement<T>` (한 방향) · `FormElement<T>` (양방향, 3.2) · `TweenValueElement<T>` (트윈, 3.4) 다. 다른 바탕은 3.3.
+- `Bind` 는 `IReadOnlyBindable<T>` 를 받는다 → `Bindable` · 파생 값 둘 다 넘길 수 있다. 양방향 Element (`FormElement<T>`) 는 같은 `Bind` 를 쓰고 안에서 `Bindable<T>` 인지 확인한다 — 파생 값이면 `Debug.Assert` 가 뜨고 조작이 VM 에 쓰이지 않는다.
 - **피할 이름**: `TextElement` · `BindableElement` — `UnityEngine.UIElements` 에 이미 있다.
 - 필요한 컴포넌트는 `[SerializeField]` 로 받고 **`Reset()` 에서 같은 오브젝트의 것을 채운다** (확정).
 
 ### 3.2 양방향 (확정)
 
 ```csharp
-private void OnSlider(float v) => _target.Value = v;                          // 조작 → ViewModel (알림이 나간다 — 의도)
-protected override void Apply(float v) => slider.SetValueWithoutNotify(v);   // ViewModel → 화면
+slider.onValueChanged.AddListener(Write);                                                 // 조작 → ViewModel (FormElement.Write, 알림이 나간다 — 의도)
+protected override void HandleValueChanged(float v) => slider.SetValueWithoutNotify(v);   // ViewModel → 화면
 ```
 
 - 조작하면 알림이 나가 같은 값을 쓰는 다른 곳이 따라온다. 되먹임은 ① `SetValueWithoutNotify` ② Bindable 같은 값 무시 두 겹으로 끊긴다.
@@ -431,7 +439,7 @@ public class BattleHudView : ScreenView<BattleHudViewModel>
 
 **두 층 (사용자 10-18, 나누기는 Claude 에 맡김):**
 - `ScreenView` (제네릭 아님) — 열기 · 닫기 · `PlayOpen` / `PlayClose` · 전환 취소 (`OnOpen` · `OnClose` 알림은 없앰, 사용자 10-19). **`ScreenManager` · 생성기는 이것만 본다** (목록 · 스택 · `GetComponent<ScreenView>()`).
-- `ScreenView<T> : ScreenView` (T = ViewModel) — `Awake` 에서 `CreateVM` → `Initialize` → `Bind(T)` → 꺼 두기, 파괴될 때 VM `Dispose`. 화면은 이걸 상속해 형변환 없이 자기 VM 을 받는다.
+- `ScreenView<T> : ScreenView` (T = ViewModel) — VM 은 직렬화 필드로 이미 있고 (4.3, 처음의 `CreateVM` 은 없앴다), `Awake` 에서 View `Initialize` → VM `Initialize` → `Bind(T)` → 꺼 두기, 파괴될 때 VM `Dispose`. 화면은 이걸 상속해 형변환 없이 자기 VM 을 받는다.
 - 나눈 이유: `ScreenView<A>` 와 `ScreenView<B>` 는 C# 에서 관계없는 타입이라 "어떤 화면이든" 을 가리킬 공통 타입이 없었다.
 
 ```csharp
@@ -453,7 +461,11 @@ protected virtual UniTask PlayClose(CancellationToken token);
   지킬 것: 매니저 오브젝트는 씬의 최상위 (`DontDestroyOnLoad` 는 루트에만), 그 매니저가 있는 씬을 다시 불러도 둘이 되지 않게, Canvas 는 카메라가 필요 없는 Screen Space - Overlay (Camera 모드면 씬마다 카메라가 바뀐다), `EventSystem` 도 씬을 넘어 하나가 있어야 클릭을 받는다. 단점: 연 화면은 앱이 끝날 때까지 메모리에 남고 VM 도 계속 이벤트를 받는다 — 씬마다 정리할 게 생기면 VM 쪽에서.
 - **메서드만**. 이벤트로 여는 것은 프로젝트가 잇는다 (연결점 2, 7.3).
 - 열린 순서를 안다 (팝업과 다른 화면을 나누지 않는 목록 하나, 사용자 10-19). **게임 판단은 두지 않는다** — "게임이 끝나면 설정창을 못 연다" 같은 막기는 요청하는 쪽이 게임 상태로 한다 (버튼 VM 의 `Command.SetEnabled` · 프로젝트의 연결 컴포넌트). 패키지는 게임 화면을 모르고, 화면끼리 서로 알면 참조가 엉킨다 (사용자 10-19 지적).
-- HUD 처럼 계속 떠 있는 화면은 씬에 두고 매니저 밖에서 다룬다.
+- **모든 화면은 매니저로 연다 (사용자 10-22 — 처음의 "HUD 처럼 계속 떠 있는 화면은 씬에 두고 매니저 밖에서 다룬다" 를 바꾼다).** HUD 도 프리팹을 목록에 넣고, 시작을 맡은 컴포넌트가 `Open<HudVM>(vm => vm.Setup(model))` 로 연다.
+  - 프리팹은 씬 오브젝트를 참조할 수 없어 씬의 Model 은 시작 컴포넌트가 받아 (인스펙터 · DI) setup 으로 넘긴다. VM 은 `Setup` 에서 구독하고 `ResetForOpen` · `Dispose` 에서 푼다 (2.5 표).
+  - 대상이 바뀌면 (씬 전환) `CloseAsync` 뒤 `OpenAsync` — 켜진 채 또 `Open` 하면 쉬는 인스턴스가 없어 두 번째 HUD 가 생긴다.
+  - 열 때 `SetAsLastSibling` 이라 HUD 를 먼저 열면 나중에 연 팝업이 위에 그려진다.
+  - 씬에 직접 두면 `ScreenView<T>` 가 `Awake` 끝에서 꺼 버리고 (꺼 둔 채 저장하면 켜는 순간 `Awake` 가 돌아 다시 꺼진다) `ResetForOpen` 도 불리지 않는다 — Apes UI6 (PHASE-033 · 034) 에서 확인.
 
 **열기 · 닫기 모양 (사용자 2026-10-19) — 키는 ViewModel 타입:**
 
@@ -556,7 +568,7 @@ MVVM-UGUI/                     (패키지 루트 = 저장소 루트, com.banggae
 
 ## 8. 테스트 (EditMode)
 
-- `Bindable`: 같은 값 무시 · 구독 즉시 현재 값 · `notifyNow: false` · 해제 뒤 알림 없음 · `Combine` 재계산.
+- `Bindable`: 같은 값 무시 · 구독 즉시 현재 값 · 새 구독자가 기존 구독자에게 다시 알리지 않음 · 해제 뒤 알림 없음 · `Select` · `Combine` 재계산과 해제.
 - `Command`: `Active` false 면 무시, `Action` 으로 갈아 끼움 · 동작 없으면 무시. `BindableList`: 알림 순서 · 인덱스.
 - `Reset`: Bindable 은 생성자 값 (객체 초기화 값 아님) · 같으면 안 알림, Command 는 생성자의 동작 · 켜짐, BindableList 는 비울 때만 알림.
 - `ScreenManager`: 다시 열 때 setup 전에 `ResetForOpen` (setup 없어도), 지난 콜백 · 값이 남지 않고 되돌리지 않는 값은 남는다.
